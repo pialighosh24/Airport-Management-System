@@ -10,8 +10,9 @@ interface Props {
 }
 
 export function FlightScheduleCard({ item }: Props) {
-  const { isFlightSaved, toggleSaveFlight } = useFlight();
+  const { isFlightSaved, toggleSaveFlight, simulateTriggerAlert } = useFlight();
   const isSaved = isFlightSaved(item.flightNumber);
+
 
   const formatClock = (isoString: string | null) => {
     if (!isoString) return 'Unavailable';
@@ -158,14 +159,36 @@ export function FlightScheduleCard({ item }: Props) {
         ) : null}
       </View>
 
-      {/* Data Freshness Indicator */}
-      <View style={styles.freshnessRow}>
-        <FreshnessIndicator freshness={item.freshness} compact />
-        <Text style={styles.providerTag}>{item.freshness.providerName}</Text>
+      {/* Data Freshness & Alert Quick Action Row */}
+      <View style={styles.actionRow}>
+        <View style={styles.freshnessGroup}>
+          <FreshnessIndicator freshness={item.freshness} compact />
+          <Text style={styles.providerTag}>{item.freshness.providerName}</Text>
+        </View>
+
+        <TouchableOpacity
+          style={[styles.alertActionBtn, isSaved && styles.alertActionBtnActive]}
+          onPress={() => {
+            if (!isSaved) {
+              toggleSaveFlight(item.flightNumber);
+            }
+            simulateTriggerAlert(item.flightNumber, 'delay');
+          }}
+        >
+          <Ionicons
+            name={isSaved ? 'notifications' : 'notifications-outline'}
+            size={12}
+            color={isSaved ? '#38BDF8' : '#94A3B8'}
+          />
+          <Text style={[styles.alertActionBtnText, isSaved && { color: '#38BDF8' }]}>
+            {isSaved ? 'Alert Active' : 'Set Delay Alert'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   card: {
@@ -276,14 +299,41 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#E2E8F0',
   },
-  freshnessRow: {
+  actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginTop: 8,
+    paddingTop: 4,
+  },
+  freshnessGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
   },
   providerTag: {
     fontSize: 10,
     color: '#64748B',
   },
+  alertActionBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    backgroundColor: '#1E293B',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  alertActionBtnActive: {
+    backgroundColor: 'rgba(2, 132, 199, 0.15)',
+    borderColor: 'rgba(56, 189, 248, 0.4)',
+  },
+  alertActionBtnText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#94A3B8',
+  },
 });
+

@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { FlightScheduleCard } from '@/components/airports/FlightScheduleCard';
@@ -90,26 +90,37 @@ export default function AirportsScreen() {
     }
   }, []);
 
-  // Run initial query for 'CCU' on first load asynchronously
+  // Load curated major hubs on first load asynchronously
   useEffect(() => {
     let isMounted = true;
     apiService
-      .searchAirports('CCU', 30)
+      .getAirportHubs()
       .then((response) => {
         if (isMounted && response?.success && Array.isArray(response.data)) {
           setSearchResults(response.data);
           setHasSearched(true);
-          setLastSearchedQuery('CCU');
+          setLastSearchedQuery('Featured Hubs');
         }
       })
       .catch(() => {
-        // Backend offline or unreachable at startup; user can search manually
+        // Fallback to searching CCU if hubs endpoint is unreached
+        apiService
+          .searchAirports('CCU', 30)
+          .then((res) => {
+            if (isMounted && res?.success && Array.isArray(res.data)) {
+              setSearchResults(res.data);
+              setHasSearched(true);
+              setLastSearchedQuery('CCU');
+            }
+          })
+          .catch(() => {});
       });
 
     return () => {
       isMounted = false;
     };
   }, []);
+
 
   // ------------------------------------------------------------------------
   // Effect: Fetch Timetables

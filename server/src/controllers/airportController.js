@@ -1,13 +1,170 @@
 /**
- * Airport Controller (Demo Mode)
+ * Airport Controller
  * 
- * Provides airport timetable schedules (arrivals & departures) and METAR weather.
+ * Provides airport search via FreeAirportDB, hub directory, timetable schedules,
+ * and live Open-Meteo meteorological data.
  */
 
 const { DEMO_AIRPORTS, DEMO_DISCLAIMER } = require('../data/demoData');
 const { searchAirports } = require('../services/airportService');
+const { getWeatherForCoordinates } = require('../services/weatherService');
+const flightAwareService = require('../services/flightAwareService');
+
 
 const VALID_TYPES = ['all', 'departure', 'arrival'];
+
+const DEFAULT_HUBS = [
+  {
+    iata: 'CCU',
+    icao: 'VECC',
+    name: 'Netaji Subhash Chandra Bose International Airport',
+    city: 'Kolkata',
+    country: 'India',
+    countryCode: 'IN',
+    region: 'West Bengal',
+    latitude: 22.6547,
+    longitude: 88.4467,
+    elevation: 5,
+    elevationFt: 16,
+    timezone: 'Asia/Kolkata',
+    type: 'large_airport',
+  },
+  {
+    iata: 'DEL',
+    icao: 'VIDP',
+    name: 'Indira Gandhi International Airport',
+    city: 'Delhi',
+    country: 'India',
+    countryCode: 'IN',
+    region: 'National Capital Territory of Delhi',
+    latitude: 28.5562,
+    longitude: 77.1000,
+    elevation: 237,
+    elevationFt: 777,
+    timezone: 'Asia/Kolkata',
+    type: 'large_airport',
+  },
+  {
+    iata: 'BOM',
+    icao: 'VABB',
+    name: 'Chhatrapati Shivaji Maharaj International Airport',
+    city: 'Mumbai',
+    country: 'India',
+    countryCode: 'IN',
+    region: 'Maharashtra',
+    latitude: 19.0896,
+    longitude: 72.8656,
+    elevation: 11,
+    elevationFt: 37,
+    timezone: 'Asia/Kolkata',
+    type: 'large_airport',
+  },
+  {
+    iata: 'BLR',
+    icao: 'VOBL',
+    name: 'Kempegowda International Airport',
+    city: 'Bengaluru',
+    country: 'India',
+    countryCode: 'IN',
+    region: 'Karnataka',
+    latitude: 13.1986,
+    longitude: 77.7066,
+    elevation: 915,
+    elevationFt: 3000,
+    timezone: 'Asia/Kolkata',
+    type: 'large_airport',
+  },
+  {
+    iata: 'JFK',
+    icao: 'KJFK',
+    name: 'John F. Kennedy International Airport',
+    city: 'New York',
+    country: 'United States',
+    countryCode: 'US',
+    region: 'New York',
+    latitude: 40.6413,
+    longitude: -73.7781,
+    elevation: 4,
+    elevationFt: 13,
+    timezone: 'America/New_York',
+    type: 'large_airport',
+  },
+  {
+    iata: 'LHR',
+    icao: 'EGLL',
+    name: 'London Heathrow Airport',
+    city: 'London',
+    country: 'United Kingdom',
+    countryCode: 'GB',
+    region: 'England',
+    latitude: 51.4700,
+    longitude: -0.4543,
+    elevation: 25,
+    elevationFt: 83,
+    timezone: 'Europe/London',
+    type: 'large_airport',
+  },
+  {
+    iata: 'DXB',
+    icao: 'OMDB',
+    name: 'Dubai International Airport',
+    city: 'Dubai',
+    country: 'United Arab Emirates',
+    countryCode: 'AE',
+    region: 'Dubai',
+    latitude: 25.2532,
+    longitude: 55.3657,
+    elevation: 19,
+    elevationFt: 62,
+    timezone: 'Asia/Dubai',
+    type: 'large_airport',
+  },
+  {
+    iata: 'SIN',
+    icao: 'WSSS',
+    name: 'Singapore Changi Airport',
+    city: 'Singapore',
+    country: 'Singapore',
+    countryCode: 'SG',
+    region: 'South East',
+    latitude: 1.3644,
+    longitude: 103.9915,
+    elevation: 7,
+    elevationFt: 22,
+    timezone: 'Asia/Singapore',
+    type: 'large_airport',
+  },
+  {
+    iata: 'HND',
+    icao: 'RJTT',
+    name: 'Tokyo Haneda Airport',
+    city: 'Tokyo',
+    country: 'Japan',
+    countryCode: 'JP',
+    region: 'Kanto',
+    latitude: 35.5494,
+    longitude: 139.7798,
+    elevation: 11,
+    elevationFt: 35,
+    timezone: 'Asia/Tokyo',
+    type: 'large_airport',
+  },
+  {
+    iata: 'FRA',
+    icao: 'EDDF',
+    name: 'Frankfurt Airport',
+    city: 'Frankfurt',
+    country: 'Germany',
+    countryCode: 'DE',
+    region: 'Hesse',
+    latitude: 50.0379,
+    longitude: 8.5622,
+    elevation: 111,
+    elevationFt: 364,
+    timezone: 'Europe/Berlin',
+    type: 'large_airport',
+  },
+];
 
 /**
  * @route   GET /api/airports
@@ -100,12 +257,161 @@ const searchAirportsHandler = async (req, res) => {
 };
 
 /**
+ * @route   GET /api/airports/hubs
+ * @desc    Get curated list of major domestic and international airport hubs
+ */
+const getAirportHubsHandler = (req, res) => {
+  return res.status(200).json({
+    success: true,
+    isDemo: false,
+    source: 'AeroNexus Airport Hub Registry',
+    count: DEFAULT_HUBS.length,
+    data: DEFAULT_HUBS,
+  });
+};
+
+/**
+ * @route   GET /api/airports/:code
+ * @desc    Get single airport details by 3-letter IATA or 4-letter ICAO code
+ * @param   code: 3-letter IATA (e.g. CCU, JFK) or 4-letter ICAO (e.g. VECC, KJFK)
+ */
+const getAirportByCodeHandler = async (req, res) => {
+  const { code } = req.params;
+
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: 'ValidationError',
+      message: 'Airport code parameter is required.',
+    });
+  }
+
+  const cleanCode = code.trim().toUpperCase();
+  if (!/^[A-Z0-9]{3,4}$/.test(cleanCode)) {
+    return res.status(400).json({
+      success: false,
+      error: 'ValidationError',
+      message: `Invalid airport code '${code}'. Must be a 3-letter IATA or 4-letter ICAO code.`,
+    });
+  }
+
+  // 1. Check curated hubs first
+  const hubMatch = DEFAULT_HUBS.find(
+    (h) => h.iata === cleanCode || h.icao === cleanCode
+  );
+  if (hubMatch) {
+    return res.status(200).json({
+      success: true,
+      source: 'AeroNexus Airport Hub Registry',
+      data: hubMatch,
+    });
+  }
+
+  // 2. Query FreeAirportDB
+  try {
+    const searchResult = await searchAirports(cleanCode, { limit: 5 });
+    if (searchResult && searchResult.data && searchResult.data.length > 0) {
+      const match =
+        searchResult.data.find(
+          (a) => a.iata === cleanCode || a.icao === cleanCode
+        ) || searchResult.data[0];
+
+      return res.status(200).json({
+        success: true,
+        source: 'FREE_AIRPORT_DB',
+        data: match,
+      });
+    }
+
+    return res.status(404).json({
+      success: false,
+      error: 'NotFoundError',
+      message: `Airport with code '${cleanCode}' was not found.`,
+    });
+  } catch (err) {
+    return res.status(502).json({
+      success: false,
+      error: 'BadGateway',
+      message: `Failed to retrieve airport data: ${err.message}`,
+    });
+  }
+};
+
+/**
+ * @route   GET /api/airports/:code/weather
+ * @desc    Get real-time Open-Meteo weather for a specific airport code
+ * @param   code: 3-letter IATA or 4-letter ICAO code
+ */
+const getAirportWeatherHandler = async (req, res) => {
+  const { code } = req.params;
+
+  if (!code || typeof code !== 'string') {
+    return res.status(400).json({
+      success: false,
+      error: 'ValidationError',
+      message: 'Airport code parameter is required.',
+    });
+  }
+
+  const cleanCode = code.trim().toUpperCase();
+  let lat = null;
+  let lon = null;
+  let airportName = cleanCode;
+
+  const hubMatch = DEFAULT_HUBS.find(
+    (h) => h.iata === cleanCode || h.icao === cleanCode
+  );
+  if (hubMatch) {
+    lat = hubMatch.latitude;
+    lon = hubMatch.longitude;
+    airportName = hubMatch.name;
+  } else {
+    try {
+      const searchResult = await searchAirports(cleanCode, { limit: 1 });
+      if (searchResult && searchResult.data && searchResult.data.length > 0) {
+        const item = searchResult.data[0];
+        lat = item.latitude;
+        lon = item.longitude;
+        airportName = item.name;
+      }
+    } catch (err) {
+      console.warn(`[Airport Weather] Could not query FreeAirportDB for ${cleanCode}: ${err.message}`);
+    }
+  }
+
+  if (lat == null || lon == null) {
+    return res.status(404).json({
+      success: false,
+      error: 'NotFoundError',
+      message: `Geographic coordinates for airport '${cleanCode}' are unavailable.`,
+    });
+  }
+
+  try {
+    const weatherResult = await getWeatherForCoordinates(lat, lon);
+    return res.status(200).json({
+      ...weatherResult,
+      airport: {
+        code: cleanCode,
+        name: airportName,
+      },
+    });
+  } catch (err) {
+    return res.status(502).json({
+      success: false,
+      error: 'BadGateway',
+      message: `Failed to fetch Open-Meteo weather: ${err.message}`,
+    });
+  }
+};
+
+/**
  * @route   GET /api/airports/:code/schedule
  * @desc    Get arrivals and departures for a specific airport hub
  * @param   code: 3-letter IATA code (e.g. JFK, LHR, DXB)
  * @query   type (optional): 'all' | 'departure' | 'arrival'
  */
-const getAirportSchedule = (req, res) => {
+const getAirportSchedule = async (req, res) => {
   const { code } = req.params;
   const { type = 'all' } = req.query;
 
@@ -129,8 +435,43 @@ const getAirportSchedule = (req, res) => {
     });
   }
 
-  // 3. Find airport in demo registry
   const iataUpper = code.trim().toUpperCase();
+
+  // 3. If FlightAware AeroAPI is configured, fetch live timetable
+  if (flightAwareService.isConfigured()) {
+    try {
+      const liveData = await flightAwareService.getAirportSchedule(iataUpper);
+      if (liveData && liveData.isLive) {
+        const departures = normalizedType === 'arrival' ? [] : liveData.departures;
+        const arrivals = normalizedType === 'departure' ? [] : liveData.arrivals;
+
+        return res.status(200).json({
+          success: true,
+          isDemo: false,
+          isLive: true,
+          source: 'FLIGHTAWARE_AEROAPI',
+          disclaimer: liveData.disclaimer,
+          airport: {
+            iata: iataUpper,
+            icao: null,
+            name: `${iataUpper} Airport`,
+          },
+          filterType: normalizedType,
+          summary: {
+            departuresCount: departures.length,
+            arrivalsCount: arrivals.length,
+            totalFlights: departures.length + arrivals.length,
+          },
+          departures,
+          arrivals,
+        });
+      }
+    } catch (err) {
+      console.warn(`[FlightAware Warning] Falling back to demo schedule for ${iataUpper}: ${err.message}`);
+    }
+  }
+
+  // 4. Find airport in demo registry
   const airport = DEMO_AIRPORTS[iataUpper];
 
   if (!airport) {
@@ -142,7 +483,7 @@ const getAirportSchedule = (req, res) => {
     });
   }
 
-  // 4. Filter arrivals/departures according to requested type
+  // 5. Filter arrivals/departures according to requested type
   const departures = normalizedType === 'arrival' ? [] : airport.departures;
   const arrivals = normalizedType === 'departure' ? [] : airport.arrivals;
 
@@ -169,8 +510,12 @@ const getAirportSchedule = (req, res) => {
   });
 };
 
+
 module.exports = {
   getAirportSchedule,
   searchAirportsHandler,
+  getAirportHubsHandler,
+  getAirportByCodeHandler,
+  getAirportWeatherHandler,
+  DEFAULT_HUBS,
 };
-

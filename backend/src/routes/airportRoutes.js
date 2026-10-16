@@ -1,5 +1,11 @@
 const express = require('express');
-const { getAirportSchedule, searchAirportsHandler } = require('../controllers/airportController');
+const {
+  getAirportSchedule,
+  searchAirportsHandler,
+  getAirportHubsHandler,
+  getAirportByCodeHandler,
+  getAirportWeatherHandler,
+} = require('../controllers/airportController');
 
 const router = express.Router();
 
@@ -12,10 +18,27 @@ const router = express.Router();
 router.get('/', searchAirportsHandler);
 
 /**
+ * @route   GET /api/airports/hubs
+ * @desc    Get curated list of major domestic and international airport hubs
+ */
+router.get('/hubs', getAirportHubsHandler);
+
+/**
  * @route   GET /api/airports/:code/schedule
- * @desc    Get arrivals and departures timetable for an airport
+ * @desc    Get arrivals and departures timetable for an airport hub
  */
 router.get('/:code/schedule', getAirportSchedule);
 
-module.exports = router;
+/**
+ * @route   GET /api/airports/:code/weather
+ * @desc    Get real-time Open-Meteo weather for an airport
+ */
+router.get('/:code/weather', getAirportWeatherHandler);
 
+/**
+ * @route   GET /api/airports/:code
+ * @desc    Get single airport details by 3-letter IATA or 4-letter ICAO code
+ */
+router.get('/:code', getAirportByCodeHandler);
+
+module.exports = router;
