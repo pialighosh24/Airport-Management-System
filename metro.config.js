@@ -10,6 +10,8 @@ config.resolver.blockList = [
     : [config.resolver.blockList].filter(Boolean)),
   new RegExp(`^${__dirname.replace(/\\/g, '\\\\')}[\\\\/]server[\\\\/].*`),
   /[\\/]server[\\/].*/,
+  new RegExp(`^${__dirname.replace(/\\/g, '\\\\')}[\\\\/]backend[\\\\/].*`),
+  /[\\/]backend[\\/].*/,
 ];
 
 module.exports = config;
