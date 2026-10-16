@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Modal,
   View,
@@ -6,9 +6,11 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { AirportDetail } from '@/types';
+import { AirportDetail, AirportWeather } from '@/types';
+import { apiService } from '@/services/api';
 
 interface Props {
   airport: AirportDetail | null;
@@ -23,6 +25,60 @@ export function AirportDetailModal({
   onClose,
   onViewTimetable,
 }: Props) {
+  const [weatherData, setWeatherData] = useState<AirportWeather | null>(null);
+  const [isLoadingWeather, setIsLoadingWeather] = useState(false);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!visible || !airport) {
+      setWeatherData(null);
+      setWeatherError(null);
+      return;
+    }
+
+    let isMounted = true;
+    setIsLoadingWeather(true);
+    setWeatherError(null);
+
+    const query: { lat?: number; lon?: number; airport?: string } = {};
+    if (airport.latitude != null && airport.longitude != null) {
+      query.lat = airport.latitude;
+      query.lon = airport.longitude;
+    }
+    if (airport.iata) {
+      query.airport = airport.iata;
+    } else if (airport.icao) {
+      query.airport = airport.icao;
+    }
+
+    apiService
+      .getAirportWeather(query)
+      .then((res) => {
+        if (isMounted) {
+          if (res && res.success) {
+            setWeatherData(res);
+          } else {
+            setWeatherError('Weather data unavailable for this location.');
+          }
+        }
+      })
+      .catch((err: unknown) => {
+        if (isMounted) {
+          const msg = err instanceof Error ? err.message : 'Could not fetch weather.';
+          setWeatherError(msg);
+        }
+      })
+      .finally(() => {
+        if (isMounted) {
+          setIsLoadingWeather(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [visible, airport]);
+
   if (!airport) return null;
 
   const formatType = (type: string | null) => {
@@ -136,6 +192,78 @@ export function AirportDetailModal({
               </View>
             </View>
 
+            {/* Live Open-Meteo Weather Card */}
+            <View style={styles.sectionCard}>
+              <View style={styles.sectionHeader}>
+                <Ionicons name="partly-sunny-outline" size={16} color="#38BDF8" />
+                <Text style={styles.sectionTitle}>Live Meteorological Forecast</Text>
+                <View style={styles.weatherBadge}>
+                  <View style={[styles.pulseDot, { backgroundColor: '#38BDF8' }]} />
+                  <Text style={styles.weatherBadgeText}>OPEN-METEO LIVE</Text>
+                </View>
+              </View>
+
+              {isLoadingWeather ? (
+                <View style={styles.weatherLoadingContainer}>
+                  <ActivityIndicator size="small" color="#38BDF8" />
+                  <Text style={styles.weatherLoadingText}>Retrieving surface conditions...</Text>
+                </View>
+              ) : weatherData ? (
+                <View>
+                  <View style={styles.metricsGrid}>
+                    <View style={styles.metricBox}>
+                      <Text style={styles.metricLabel}>SURFACE TEMP</Text>
+                      <Text style={[styles.metricValue, { color: '#F59E0B' }]}>
+                        {weatherData.weather.temperatureC != null
+                          ? `${weatherData.weather.temperatureC}°C`
+                          : 'Unavailable'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.metricBox}>
+                      <Text style={styles.metricLabel}>SURFACE WIND</Text>
+                      <Text style={[styles.metricValue, { color: '#38BDF8' }]}>
+                        {weatherData.weather.windSpeedKnots != null
+                          ? `${weatherData.weather.windSpeedKnots} kts`
+                          : 'Unavailable'}
+                        {weatherData.weather.windDirectionDeg != null
+                          ? ` @ ${weatherData.weather.windDirectionDeg}°`
+                          : ''}
+                      </Text>
+                    </View>
+
+                    <View style={styles.metricBox}>
+                      <Text style={styles.metricLabel}>CONDITION</Text>
+                      <Text style={styles.metricValue}>
+                        {weatherData.weather.condition || 'Fair'}
+                      </Text>
+                    </View>
+
+                    <View style={styles.metricBox}>
+                      <Text style={styles.metricLabel}>HUMIDITY</Text>
+                      <Text style={styles.metricValue}>
+                        {weatherData.weather.relativeHumidityPct != null
+                          ? `${weatherData.weather.relativeHumidityPct}%`
+                          : 'Unavailable'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Weather Disclaimer */}
+                  <View style={styles.weatherDisclaimerBox}>
+                    <Ionicons name="information-circle-outline" size={14} color="#94A3B8" />
+                    <Text style={styles.weatherDisclaimerText}>
+                      {weatherData.disclaimer}
+                    </Text>
+                  </View>
+                </View>
+              ) : (
+                <Text style={styles.weatherUnavailableText}>
+                  {weatherError || 'Weather data unavailable for this airport.'}
+                </Text>
+              )}
+            </View>
+
             {/* Geographical Location Card */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
@@ -223,14 +351,12 @@ export function AirportDetailModal({
                   onViewTimetable(airport.iata!);
                 }}
               >
-                <Ionicons name="time-outline" size={18} color="#FFFFFF" />
+                <Ionicons name="calendar-outline" size={18} color="#FFFFFF" />
                 <Text style={styles.timetableActionBtnText}>
-                  View Timetable for {airport.iata}
+                  View {airport.iata} Hub Flight Timetables
                 </Text>
               </TouchableOpacity>
             )}
-
-            <View style={{ height: 20 }} />
           </ScrollView>
         </View>
       </View>
@@ -245,27 +371,29 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: '#0B132B',
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
-    maxHeight: '90%',
-    borderTopWidth: 1,
-    borderTopColor: '#334155',
+    backgroundColor: '#0A1128',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    maxHeight: '85%',
+    paddingHorizontal: 20,
+    paddingBottom: 30,
+    borderWidth: 1,
+    borderColor: '#1E293B',
   },
   dragHandle: {
-    width: 36,
+    width: 40,
     height: 4,
-    borderRadius: 2,
     backgroundColor: '#334155',
+    borderRadius: 2,
     alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 6,
+    marginTop: 10,
+    marginBottom: 14,
   },
   header: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'flex-start',
-    paddingHorizontal: 18,
-    paddingTop: 8,
+    marginBottom: 16,
     paddingBottom: 14,
     borderBottomWidth: 1,
     borderBottomColor: '#1E293B',
@@ -273,9 +401,8 @@ const styles = StyleSheet.create({
   badgeRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 8,
     marginBottom: 6,
-    flexWrap: 'wrap',
   },
   iataPill: {
     backgroundColor: '#0284C7',
@@ -305,47 +432,49 @@ const styles = StyleSheet.create({
   sourcePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
-    paddingHorizontal: 7,
+    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
     borderColor: 'rgba(16, 185, 129, 0.3)',
+    gap: 5,
   },
   pulseDot: {
-    width: 5,
-    height: 5,
-    borderRadius: 2.5,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: '#10B981',
-    marginRight: 4,
   },
   sourceText: {
-    color: '#6EE7B7',
-    fontSize: 9,
+    color: '#10B981',
     fontWeight: '700',
-    letterSpacing: 0.4,
+    fontSize: 10,
+    letterSpacing: 0.5,
   },
   airportTitle: {
     color: '#F8FAFC',
     fontSize: 18,
     fontWeight: '800',
     lineHeight: 24,
+    marginBottom: 2,
   },
   airportSubTitle: {
     color: '#94A3B8',
     fontSize: 13,
-    marginTop: 2,
     fontWeight: '500',
   },
   closeBtn: {
-    padding: 6,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
     backgroundColor: '#1E293B',
-    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
     marginLeft: 10,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 14,
+    flexGrow: 0,
   },
   sectionCard: {
     backgroundColor: '#0F1A36',
@@ -366,6 +495,54 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.2,
+  },
+  weatherBadge: {
+    marginLeft: 'auto',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 4,
+  },
+  weatherBadgeText: {
+    color: '#38BDF8',
+    fontSize: 9,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  weatherLoadingContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    gap: 8,
+  },
+  weatherLoadingText: {
+    color: '#94A3B8',
+    fontSize: 12,
+  },
+  weatherUnavailableText: {
+    color: '#64748B',
+    fontSize: 12,
+    fontStyle: 'italic',
+    paddingVertical: 6,
+  },
+  weatherDisclaimerBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'rgba(15, 23, 42, 0.6)',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    marginTop: 10,
+    gap: 6,
+  },
+  weatherDisclaimerText: {
+    color: '#64748B',
+    fontSize: 10,
+    flex: 1,
   },
   metricsGrid: {
     flexDirection: 'row',
