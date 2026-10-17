@@ -13,11 +13,11 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
+      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
       <View style={styles.topRow}>
         <View style={styles.branding}>
           <View style={styles.iconCircle}>
-            <Ionicons name="airplane" size={18} color="#38BDF8" />
+            <Ionicons name="airplane" size={18} color="#0284C7" />
           </View>
           <View>
             <Text style={styles.title}>{title}</Text>
@@ -38,10 +38,10 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
               styles.liveDot,
               {
                 backgroundColor: isBackendConnected
-                  ? '#10B981'
+                  ? '#059669'
                   : isLoadingFlights
-                  ? '#F59E0B'
-                  : '#EF4444',
+                  ? '#D97706'
+                  : '#DC2626',
               },
             ]}
           />
@@ -50,10 +50,10 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
               styles.badgeText,
               {
                 color: isBackendConnected
-                  ? '#34D399'
+                  ? '#15803D'
                   : isLoadingFlights
-                  ? '#FBBF24'
-                  : '#F87171',
+                  ? '#B45309'
+                  : '#B91C1C',
               },
             ]}
           >
@@ -67,7 +67,7 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
       </View>
 
       <View style={styles.principlePill}>
-        <Ionicons name="link-outline" size={12} color="#38BDF8" style={{ marginRight: 4 }} />
+        <Ionicons name="link-outline" size={12} color="#0284C7" style={{ marginRight: 4 }} />
         <Text style={styles.principleText} numberOfLines={1}>
           API: {serverUrl} • Demo Mode Active
         </Text>
@@ -78,12 +78,12 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#0B132B',
+    backgroundColor: '#FFFFFF',
     paddingTop: 12,
     paddingBottom: 10,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C2541',
+    borderBottomColor: '#E2E8F0',
   },
   topRow: {
     flexDirection: 'row',
@@ -95,44 +95,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: '#E0F2FE',
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.3)',
+    borderColor: '#BAE6FD',
   },
   title: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#F8FAFC',
-    letterSpacing: 0.5,
+    color: '#0F172A',
+    letterSpacing: -0.3,
   },
   subtitle: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
     fontWeight: '500',
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C2541',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: '#3A506B',
   },
   badgeConnected: {
-    borderColor: '#059669',
-    backgroundColor: 'rgba(6, 78, 59, 0.5)',
+    borderColor: '#86EFAC',
+    backgroundColor: '#DCFCE7',
   },
   badgeDisconnected: {
-    borderColor: '#7F1D1D',
-    backgroundColor: 'rgba(127, 29, 29, 0.5)',
+    borderColor: '#FECACA',
+    backgroundColor: '#FEE2E2',
   },
   liveDot: {
     width: 6,
@@ -148,15 +146,17 @@ const styles = StyleSheet.create({
   principlePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(28, 37, 65, 0.6)',
+    backgroundColor: '#F8FAFC',
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 6,
     marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   principleText: {
-    color: '#94A3B8',
-    fontSize: 10,
+    color: '#475569',
+    fontSize: 11,
     fontWeight: '500',
   },
 });

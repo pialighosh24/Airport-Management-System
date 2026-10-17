@@ -318,7 +318,7 @@ export function MobileMapView({
           onPress={handleRecenter}
           accessibilityLabel="Recenter Map"
         >
-          <Ionicons name="navigate-outline" size={18} color="#FFFFFF" />
+          <Ionicons name="navigate-outline" size={18} color="#0F172A" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -326,7 +326,7 @@ export function MobileMapView({
           onPress={handleFitAllAircraft}
           accessibilityLabel="Fit Active Aircraft"
         >
-          <Ionicons name="scan-outline" size={18} color="#FFFFFF" />
+          <Ionicons name="scan-outline" size={18} color="#0F172A" />
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -334,14 +334,14 @@ export function MobileMapView({
           onPress={() => setMapType((prev) => (prev === 'standard' ? 'hybrid' : 'standard'))}
           accessibilityLabel="Toggle Satellite View"
         >
-          <Ionicons name="earth" size={18} color="#FFFFFF" />
+          <Ionicons name="earth" size={18} color={mapType === 'hybrid' ? '#FFFFFF' : '#0F172A'} />
         </TouchableOpacity>
       </View>
 
       {/* Bottom Summary Strip */}
       <View style={styles.mapInfoStrip}>
         <View style={styles.stripLeft}>
-          <Ionicons name="radio-outline" size={14} color="#10B981" />
+          <Ionicons name="radio" size={14} color="#059669" />
           <Text style={styles.stripText}>
             {validAircraft.length} Aircraft Plotted • {DEFAULT_MAP_AIRPORTS.length} Hubs
           </Text>
@@ -357,7 +357,7 @@ export function MobileMapView({
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#070D1E',
+    backgroundColor: '#F8FAFC',
   },
   map: {
     position: 'absolute',
@@ -368,14 +368,19 @@ const styles = StyleSheet.create({
   },
   airportMarkerBadge: {
     backgroundColor: '#0284C7',
-    paddingHorizontal: 6,
-    paddingVertical: 3,
+    paddingHorizontal: 7,
+    paddingVertical: 4,
     borderRadius: 6,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 3,
-    borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
   airportMarkerText: {
     color: '#FFFFFF',
@@ -387,66 +392,83 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   aircraftPinSelected: {
-    transform: [{ scale: 1.2 }],
+    transform: [{ scale: 1.25 }],
   },
   aircraftIconCircle: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: 26,
+    height: 26,
+    borderRadius: 13,
     alignItems: 'center',
     justifyContent: 'center',
-    elevation: 3,
-    shadowColor: '#000',
+    borderWidth: 1.5,
+    borderColor: '#FFFFFF',
+    shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 2,
+    shadowOpacity: 0.20,
+    shadowRadius: 3,
+    elevation: 4,
   },
   aircraftCallsignTag: {
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    paddingHorizontal: 4,
-    paddingVertical: 1,
-    borderRadius: 3,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
     marginTop: 2,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.08,
+    shadowRadius: 2,
+    elevation: 2,
   },
   aircraftCallsignTagText: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 9,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   calloutCard: {
-    backgroundColor: '#0F172A',
-    padding: 10,
-    borderRadius: 8,
-    minWidth: 160,
+    backgroundColor: '#FFFFFF',
+    padding: 12,
+    borderRadius: 10,
+    minWidth: 175,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
   },
   calloutTitle: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
+    color: '#0F172A',
+    fontWeight: '800',
+    fontSize: 14,
   },
   calloutSubtitle: {
-    color: '#94A3B8',
-    fontSize: 10,
+    color: '#64748B',
+    fontSize: 11,
     marginTop: 2,
+    fontWeight: '500',
   },
   calloutMetricsRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 6,
-    paddingTop: 4,
+    marginTop: 8,
+    paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: '#334155',
+    borderTopColor: '#F1F5F9',
   },
   calloutMetric: {
-    color: '#38BDF8',
-    fontSize: 10,
-    fontWeight: '600',
+    color: '#0284C7',
+    fontSize: 11,
+    fontWeight: '700',
   },
   calloutActionText: {
-    color: '#10B981',
-    fontSize: 9,
-    fontWeight: '600',
-    marginTop: 6,
+    color: '#059669',
+    fontSize: 10,
+    fontWeight: '700',
+    marginTop: 8,
     textAlign: 'center',
   },
   controlsOverlay: {
@@ -456,33 +478,43 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   controlBtn: {
-    backgroundColor: 'rgba(15, 23, 42, 0.85)',
-    width: 38,
-    height: 38,
-    borderRadius: 19,
+    backgroundColor: '#FFFFFF',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   controlBtnActive: {
-    borderColor: '#38BDF8',
-    backgroundColor: 'rgba(2, 132, 199, 0.9)',
+    borderColor: '#0284C7',
+    backgroundColor: '#0284C7',
   },
   mapInfoStrip: {
     position: 'absolute',
     bottom: 12,
     left: 16,
     right: 16,
-    backgroundColor: 'rgba(15, 23, 42, 0.9)',
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 4,
   },
   stripLeft: {
     flexDirection: 'row',
@@ -490,20 +522,20 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   stripText: {
-    color: '#F1F5F9',
-    fontSize: 11,
-    fontWeight: '600',
+    color: '#0F172A',
+    fontSize: 12,
+    fontWeight: '700',
   },
   stripModeText: {
-    color: '#38BDF8',
-    fontSize: 10,
+    color: '#0284C7',
+    fontSize: 11,
     fontWeight: '800',
     letterSpacing: 0.5,
   },
   // Web Fallback styles
   webFallbackContainer: {
     flex: 1,
-    backgroundColor: '#070D1E',
+    backgroundColor: '#F8FAFC',
     padding: 16,
   },
   webHeader: {
@@ -518,9 +550,9 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   webHeaderTitle: {
-    color: '#FFFFFF',
+    color: '#0F172A',
     fontSize: 16,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   badgeRow: {
     flexDirection: 'row',
@@ -540,33 +572,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(2, 132, 199, 0.12)',
-    borderColor: 'rgba(2, 132, 199, 0.3)',
+    backgroundColor: '#EFF6FF',
+    borderColor: '#BAE6FD',
     borderWidth: 1,
     padding: 10,
     borderRadius: 8,
     marginBottom: 12,
   },
   webNoticeText: {
-    color: '#BAE6FD',
+    color: '#0369A1',
     fontSize: 12,
     flex: 1,
     lineHeight: 16,
+    fontWeight: '500',
   },
   geoList: {
     flex: 1,
   },
   geoCard: {
-    backgroundColor: '#0F172A',
-    borderRadius: 8,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
     padding: 12,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   geoCardSelected: {
-    borderColor: '#38BDF8',
-    backgroundColor: '#1E293B',
+    borderColor: '#0284C7',
+    backgroundColor: '#F0F9FF',
   },
   geoCardTop: {
     flexDirection: 'row',
@@ -577,9 +615,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   geoCallsign: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 14,
-    fontWeight: '700',
+    fontWeight: '800',
   },
   geoIcao: {
     color: '#64748B',
@@ -595,9 +633,10 @@ const styles = StyleSheet.create({
     fontWeight: '800',
   },
   geoSpeedText: {
-    color: '#94A3B8',
-    fontSize: 10,
+    color: '#475569',
+    fontSize: 11,
     marginTop: 1,
+    fontWeight: '600',
   },
   geoCoordsRow: {
     flexDirection: 'row',
@@ -606,10 +645,10 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: '#F1F5F9',
   },
   geoCoordsText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 11,
     fontFamily: Platform.OS === 'ios' ? 'Menlo' : 'monospace',
   },

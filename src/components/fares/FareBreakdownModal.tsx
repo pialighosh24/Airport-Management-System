@@ -163,21 +163,21 @@ export function FareBreakdownModal({ fare, currency = 'INR', visible, onClose }:
               <Text style={styles.sectionTitle}>Baggage Rules & Allowance</Text>
               
               <View style={styles.ruleItem}>
-                <Ionicons name="bag-handle-outline" size={14} color="#38BDF8" />
+                <Ionicons name="bag-handle-outline" size={14} color="#0284C7" />
                 <Text style={styles.ruleText}>
                   Personal Bag: {fare.baggage.personalItemRule}
                 </Text>
               </View>
 
               <View style={styles.ruleItem}>
-                <Ionicons name="briefcase-outline" size={14} color="#38BDF8" />
+                <Ionicons name="briefcase-outline" size={14} color="#0284C7" />
                 <Text style={styles.ruleText}>
                   Cabin Overhead: {fare.baggage.cabinBagIncluded ? `${fare.baggage.cabinBagWeightKg}kg included` : 'Not included in basic fare'}
                 </Text>
               </View>
 
               <View style={styles.ruleItem}>
-                <Ionicons name="cube-outline" size={14} color="#38BDF8" />
+                <Ionicons name="cube-outline" size={14} color="#0284C7" />
                 <Text style={styles.ruleText}>
                   Checked Luggage: {fare.baggage.checkedBagIncluded ? `${fare.baggage.checkedBagWeightKg}kg included` : `Not included (${extraCheckedBagDisplay} fee)`}
                 </Text>
@@ -219,19 +219,24 @@ export function FareBreakdownModal({ fare, currency = 'INR', visible, onClose }:
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(7, 13, 30, 0.85)',
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
     justifyContent: 'center',
     alignItems: 'center',
     padding: 16,
   },
   modalCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     width: '100%',
     maxHeight: '85%',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     overflow: 'hidden',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 8,
   },
   header: {
     flexDirection: 'row',
@@ -241,20 +246,22 @@ const styles = StyleSheet.create({
     paddingTop: 16,
     paddingBottom: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#F1F5F9',
   },
   title: {
     fontSize: 16,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   subtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 2,
   },
   closeBtn: {
-    padding: 4,
+    padding: 6,
+    backgroundColor: '#F1F5F9',
+    borderRadius: 16,
   },
   content: {
     padding: 16,
@@ -262,47 +269,47 @@ const styles = StyleSheet.create({
   revalidatePrompt: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    backgroundColor: '#F0F9FF',
     borderRadius: 8,
     padding: 10,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.3)',
+    borderColor: '#BAE6FD',
     gap: 8,
   },
   revalidatePromptText: {
     fontSize: 11,
-    color: '#38BDF8',
+    color: '#0284C7',
     fontWeight: '700',
   },
   verifiedBanner: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: '#DCFCE7',
     borderRadius: 8,
     padding: 10,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#10B981',
+    borderColor: '#86EFAC',
     gap: 8,
   },
   verifiedTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#34D399',
+    color: '#15803D',
   },
   verifiedDesc: {
     fontSize: 10,
-    color: '#A7F3D0',
+    color: '#166534',
     marginTop: 2,
   },
   lineItemsContainer: {
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 10,
     padding: 12,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   containerHeader: {
     fontSize: 9,
@@ -316,33 +323,33 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: '#F1F5F9',
   },
   itemLabel: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#475569',
   },
   itemValue: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   totalRow: {
     borderBottomWidth: 0,
     marginTop: 6,
     paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#38BDF8',
+    borderTopColor: '#0284C7',
   },
   totalLabel: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   totalValue: {
     fontSize: 16,
     fontWeight: '900',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   detailSection: {
     marginBottom: 14,
@@ -350,7 +357,7 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
     marginBottom: 6,
   },
   ruleItem: {
@@ -361,21 +368,23 @@ const styles = StyleSheet.create({
   },
   ruleText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#475569',
   },
   policyText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#475569',
     lineHeight: 16,
   },
   disclaimerBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F1F5F9',
     padding: 10,
     borderRadius: 8,
     gap: 6,
     marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   disclaimerText: {
     fontSize: 10,
