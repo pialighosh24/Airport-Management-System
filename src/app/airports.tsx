@@ -172,12 +172,12 @@ export default function AirportsScreen() {
   const getDelayBadge = (delayIndex: string) => {
     switch (delayIndex) {
       case 'severe':
-        return { bg: '#7F1D1D', text: '#FCA5A5', label: 'Severe Congestion' };
+        return { bg: '#FEE2E2', text: '#B91C1C', border: '#FECACA', label: 'Severe Congestion' };
       case 'moderate':
-        return { bg: '#78350F', text: '#FDE68A', label: 'Moderate Delays' };
+        return { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', label: 'Moderate Delays' };
       case 'minimal':
       default:
-        return { bg: '#064E3B', text: '#6EE7B7', label: 'Normal Operations' };
+        return { bg: '#DCFCE7', text: '#15803D', border: '#86EFAC', label: 'Normal Operations' };
     }
   };
 
@@ -215,7 +215,7 @@ export default function AirportsScreen() {
               <Ionicons
                 name="search"
                 size={14}
-                color={activeTab === 'search' ? '#FFFFFF' : '#94A3B8'}
+                color={activeTab === 'search' ? '#FFFFFF' : '#64748B'}
                 style={{ marginRight: 6 }}
               />
               <Text
@@ -239,7 +239,7 @@ export default function AirportsScreen() {
               <Ionicons
                 name="time-outline"
                 size={14}
-                color={activeTab === 'timetables' ? '#FFFFFF' : '#94A3B8'}
+                color={activeTab === 'timetables' ? '#FFFFFF' : '#64748B'}
                 style={{ marginRight: 6 }}
               />
               <Text
@@ -600,28 +600,28 @@ export default function AirportsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B132B',
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
-    backgroundColor: '#070D1E',
+    backgroundColor: '#F8FAFC',
   },
 
   // Segmented Bar
   segmentedWrapper: {
-    backgroundColor: '#0A1329',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
   },
   segmentedBar: {
     flexDirection: 'row',
-    backgroundColor: '#131D38',
+    backgroundColor: '#F1F5F9',
     borderRadius: 10,
     padding: 3,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   segmentItem: {
     flex: 1,
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0284C7',
   },
   segmentItemText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 13,
     fontWeight: '600',
   },
@@ -652,21 +652,22 @@ const styles = StyleSheet.create({
     paddingTop: 12,
     paddingBottom: 8,
     gap: 8,
+    backgroundColor: '#FFFFFF',
   },
   searchFieldBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 44,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   searchTextInput: {
     flex: 1,
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 13,
     fontWeight: '500',
   },
@@ -688,7 +689,8 @@ const styles = StyleSheet.create({
   chipsScrollWrapper: {
     paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
+    backgroundColor: '#FFFFFF',
   },
   chipsScrollContent: {
     paddingHorizontal: 16,
@@ -703,24 +705,24 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
   },
   quickChip: {
-    backgroundColor: '#131D38',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 7,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   quickChipActive: {
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
-    borderColor: '#38BDF8',
+    backgroundColor: '#E0F2FE',
+    borderColor: '#0284C7',
   },
   quickChipText: {
-    color: '#94A3B8',
+    color: '#475569',
     fontSize: 11,
     fontWeight: '600',
   },
   quickChipTextActive: {
-    color: '#38BDF8',
+    color: '#0284C7',
     fontWeight: '700',
   },
 
@@ -740,20 +742,20 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   resultsCountText: {
-    color: '#94A3B8',
+    color: '#475569',
     fontSize: 12,
     fontWeight: '600',
   },
   apiSourceBadge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    backgroundColor: '#E0F2FE',
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 4,
   },
   apiSourceText: {
-    color: '#38BDF8',
+    color: '#0284C7',
     fontSize: 10,
     fontWeight: '700',
   },
@@ -766,7 +768,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   loadingTitle: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: '700',
     marginTop: 14,
@@ -782,60 +784,60 @@ const styles = StyleSheet.create({
     width: 68,
     height: 68,
     borderRadius: 34,
-    backgroundColor: '#131D38',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   searchEmptyTitle: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 16,
     fontWeight: '700',
     marginTop: 12,
   },
   searchEmptySub: {
-    color: '#94A3B8',
+    color: '#475569',
     fontSize: 13,
     textAlign: 'center',
     marginTop: 4,
   },
   searchEmptyAdvice: {
-    color: '#64748B',
+    color: '#475569',
     fontSize: 12,
     lineHeight: 18,
     marginTop: 14,
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
 
   // Error Box
   errorBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.12)',
+    backgroundColor: '#FEE2E2',
     marginHorizontal: 16,
     marginTop: 10,
     padding: 12,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(239, 68, 68, 0.3)',
+    borderColor: '#FECACA',
   },
   errorTitle: {
-    color: '#F87171',
+    color: '#B91C1C',
     fontSize: 12,
     fontWeight: '700',
   },
   errorText: {
-    color: '#FCA5A5',
+    color: '#DC2626',
     fontSize: 11,
     marginTop: 2,
   },
   retryBtn: {
-    backgroundColor: '#EF4444',
+    backgroundColor: '#DC2626',
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,
@@ -849,10 +851,10 @@ const styles = StyleSheet.create({
 
   // Timetables Tab Styles
   airportScrollWrapper: {
-    backgroundColor: '#0A1329',
+    backgroundColor: '#FFFFFF',
     paddingVertical: 8,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
   },
   airportScroll: {
     paddingHorizontal: 16,
@@ -860,42 +862,47 @@ const styles = StyleSheet.create({
   airportChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#131D38',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 8,
     marginRight: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     gap: 6,
   },
   airportChipActive: {
     backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    borderColor: '#0284C7',
   },
   airportChipCode: {
     fontSize: 13,
     fontWeight: '800',
-    color: '#CBD5E1',
+    color: '#0F172A',
   },
   airportChipCodeActive: {
     color: '#FFFFFF',
   },
   airportChipCity: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
   },
   airportChipCityActive: {
     color: '#E0F2FE',
   },
   metarCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginTop: 10,
-    borderRadius: 10,
-    padding: 12,
+    borderRadius: 12,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   metarTopRow: {
     flexDirection: 'row',
@@ -907,19 +914,20 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   airportFullName: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   metarWeather: {
-    fontSize: 11,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: '#64748B',
     marginTop: 2,
   },
   delayPill: {
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
+    borderWidth: 1,
   },
   delayPillText: {
     fontSize: 10,
@@ -927,7 +935,7 @@ const styles = StyleSheet.create({
   },
   delayDescText: {
     fontSize: 11,
-    color: '#CBD5E1',
+    color: '#475569',
     marginTop: 6,
     fontStyle: 'italic',
   },
@@ -938,26 +946,28 @@ const styles = StyleSheet.create({
   searchBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingHorizontal: 10,
     paddingVertical: 6,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     gap: 8,
     marginBottom: 8,
   },
   searchInput: {
     flex: 1,
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 12,
   },
   typeToggle: {
     flexDirection: 'row',
-    backgroundColor: '#131D38',
+    backgroundColor: '#F1F5F9',
     borderRadius: 8,
     padding: 3,
     marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   typeBtn: {
     flex: 1,
@@ -972,7 +982,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#0284C7',
   },
   typeBtnText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
     fontWeight: '600',
   },
@@ -983,17 +993,20 @@ const styles = StyleSheet.create({
   errorNotice: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: '#FEF3C7',
     marginHorizontal: 16,
     paddingHorizontal: 10,
-    paddingVertical: 5,
+    paddingVertical: 6,
     borderRadius: 6,
     gap: 6,
     marginBottom: 6,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
   },
   errorNoticeText: {
-    fontSize: 10,
-    color: '#FDE68A',
+    fontSize: 11,
+    color: '#B45309',
+    fontWeight: '500',
   },
   loadingBox: {
     paddingVertical: 30,
@@ -1002,7 +1015,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
   },
   listContainer: {
     flex: 1,
@@ -1016,7 +1029,7 @@ const styles = StyleSheet.create({
   emptyText: {
     fontSize: 14,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#0F172A',
     marginTop: 10,
   },
   emptySub: {

@@ -111,14 +111,14 @@ export default function StaffScreen() {
         {/* Staff Role & Logout Bar */}
         <View style={styles.staffSessionBar}>
           <View style={styles.sessionInfo}>
-            <Ionicons name="person-circle-outline" size={16} color="#10B981" />
+            <Ionicons name="person-circle-outline" size={16} color="#059669" />
             <Text style={styles.sessionText}>
-              Duty Officer: <Text style={{ color: '#F8FAFC', fontWeight: '700' }}>Ops Control Center (OCC)</Text>
+              Duty Officer: <Text style={{ color: '#0F172A', fontWeight: '700' }}>Ops Control Center (OCC)</Text>
             </Text>
           </View>
 
           <TouchableOpacity style={styles.logoutBtn} onPress={logoutStaff}>
-            <Ionicons name="log-out-outline" size={14} color="#EF4444" />
+            <Ionicons name="log-out-outline" size={14} color="#DC2626" />
             <Text style={styles.logoutBtnText}>Lock</Text>
           </TouchableOpacity>
         </View>
@@ -130,8 +130,8 @@ export default function StaffScreen() {
             <Text style={styles.metricTitle}>Active Cases</Text>
           </View>
 
-          <View style={[styles.metricCard, { borderColor: '#DC2626' }]}>
-            <Text style={[styles.metricVal, { color: '#EF4444' }]}>{criticalCount}</Text>
+          <View style={[styles.metricCard, { borderColor: '#FECACA' }]}>
+            <Text style={[styles.metricVal, { color: '#DC2626' }]}>{criticalCount}</Text>
             <Text style={styles.metricTitle}>Critical Alert</Text>
           </View>
 
@@ -194,11 +194,11 @@ export default function StaffScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B132B',
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
-    backgroundColor: '#070D1E',
+    backgroundColor: '#F8FAFC',
   },
   loginCardWrapper: {
     flex: 1,
@@ -206,33 +206,38 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   loginCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 16,
     padding: 24,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     alignItems: 'center',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 10,
+    elevation: 4,
   },
   lockIconCircle: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    backgroundColor: '#E0F2FE',
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.3)',
+    borderColor: '#BAE6FD',
   },
   loginTitle: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
     marginBottom: 6,
   },
   loginDesc: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
     textAlign: 'center',
     lineHeight: 18,
     marginBottom: 20,
@@ -243,18 +248,19 @@ const styles = StyleSheet.create({
   pinLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#64748B',
     marginBottom: 6,
+    textTransform: 'uppercase',
   },
   pinInput: {
-    backgroundColor: '#0A1329',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
     marginBottom: 12,
   },
   loginBtn: {
@@ -273,25 +279,27 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   quickUnlockText: {
-    color: '#38BDF8',
+    color: '#0284C7',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   staffSessionBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0A1329',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#E2E8F0',
   },
   sessionInfo: {
     flexDirection: 'row',
@@ -299,22 +307,24 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   sessionText: {
-    fontSize: 11,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: '#64748B',
   },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(239, 68, 68, 0.1)',
-    paddingHorizontal: 8,
+    backgroundColor: '#FEE2E2',
+    paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
     gap: 4,
+    borderWidth: 1,
+    borderColor: '#FECACA',
   },
   logoutBtnText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#EF4444',
+    color: '#DC2626',
   },
   metricsRow: {
     flexDirection: 'row',
@@ -324,23 +334,29 @@ const styles = StyleSheet.create({
   },
   metricCard: {
     flex: 1,
-    backgroundColor: '#0F1A36',
-    borderRadius: 10,
-    padding: 10,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   metricVal: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '900',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   metricTitle: {
     fontSize: 10,
     fontWeight: '700',
     color: '#64748B',
     marginTop: 2,
+    textTransform: 'uppercase',
   },
   actionHeader: {
     paddingHorizontal: 16,
@@ -368,24 +384,24 @@ const styles = StyleSheet.create({
   },
   filterPill: {
     flex: 1,
-    backgroundColor: '#131D38',
-    paddingVertical: 5,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 6,
     borderRadius: 6,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   filterPillActive: {
-    backgroundColor: '#1E3A8A',
-    borderColor: '#38BDF8',
+    backgroundColor: '#0284C7',
+    borderColor: '#0284C7',
   },
   filterPillText: {
     fontSize: 9,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#64748B',
   },
   filterPillTextActive: {
-    color: '#38BDF8',
+    color: '#FFFFFF',
   },
   casesList: {
     flex: 1,

@@ -66,7 +66,7 @@ export function AirportCard({ airport, onPress }: Props) {
 
       {/* Location Line */}
       <View style={styles.locationRow}>
-        <Ionicons name="location-sharp" size={14} color="#38BDF8" style={{ marginRight: 5 }} />
+        <Ionicons name="location-sharp" size={14} color="#0284C7" style={{ marginRight: 5 }} />
         <Text style={styles.locationText} numberOfLines={1}>
           {[airport.city, airport.region, airport.country].filter(Boolean).join(', ') || 'Location unavailable'}
         </Text>
@@ -75,7 +75,7 @@ export function AirportCard({ airport, onPress }: Props) {
       {/* Bottom Meta Strip: Timezone & Coordinates */}
       <View style={styles.metaStrip}>
         <View style={styles.metaItem}>
-          <Ionicons name="time-outline" size={13} color="#94A3B8" style={{ marginRight: 4 }} />
+          <Ionicons name="time-outline" size={13} color="#64748B" style={{ marginRight: 4 }} />
           <Text style={styles.metaText}>
             {airport.timezone || 'Timezone: Unknown'}
           </Text>
@@ -83,13 +83,13 @@ export function AirportCard({ airport, onPress }: Props) {
 
         {coordinatesStr ? (
           <View style={styles.metaItem}>
-            <Ionicons name="navigate-outline" size={13} color="#94A3B8" style={{ marginRight: 4 }} />
+            <Ionicons name="navigate-outline" size={13} color="#64748B" style={{ marginRight: 4 }} />
             <Text style={styles.metaText}>{coordinatesStr}</Text>
           </View>
         ) : null}
 
         <View style={styles.arrowIcon}>
-          <Ionicons name="chevron-forward" size={16} color="#64748B" />
+          <Ionicons name="chevron-forward" size={16} color="#94A3B8" />
         </View>
       </View>
     </TouchableOpacity>
@@ -98,12 +98,17 @@ export function AirportCard({ airport, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0F1A36',
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   topRow: {
     flexDirection: 'row',
@@ -129,34 +134,34 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   icaoBadge: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
   },
   icaoText: {
-    color: '#94A3B8',
+    color: '#475569',
     fontWeight: '700',
     fontSize: 12,
     letterSpacing: 0.5,
   },
   typeBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    backgroundColor: '#F0F9FF',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.25)',
+    borderColor: '#BAE6FD',
   },
   typeText: {
-    color: '#38BDF8',
+    color: '#0369A1',
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '700',
   },
   airportName: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: '700',
     lineHeight: 20,
@@ -168,7 +173,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   locationText: {
-    color: '#94A3B8',
+    color: '#475569',
     fontSize: 12,
     fontWeight: '500',
     flex: 1,
@@ -176,9 +181,9 @@ const styles = StyleSheet.create({
   metaStrip: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: '#F1F5F9',
     justifyContent: 'space-between',
   },
   metaItem: {
@@ -187,7 +192,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   metaText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 11,
     fontWeight: '500',
   },

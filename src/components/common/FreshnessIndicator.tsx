@@ -12,34 +12,34 @@ export function FreshnessIndicator({ freshness, compact = false }: Props) {
     switch (status) {
       case 'valid':
         return {
-          color: '#10B981', // Emerald green
-          bgColor: '#064E3B',
-          borderColor: '#059669',
+          color: '#15803D',
+          bgColor: '#DCFCE7',
+          borderColor: '#86EFAC',
           label: 'VALID / LIVE',
           desc: `Observed ${freshness.ageSeconds}s ago`,
         };
       case 'stale':
         return {
-          color: '#F59E0B', // Amber warning
-          bgColor: '#78350F',
-          borderColor: '#D97706',
+          color: '#B45309',
+          bgColor: '#FEF3C7',
+          borderColor: '#FDE68A',
           label: 'STALE DATA',
           desc: `Observed ${Math.round(freshness.ageSeconds / 60)}m ago (Lagging)`,
         };
       case 'missing':
         return {
-          color: '#9CA3AF', // Muted gray
-          bgColor: '#374151',
-          borderColor: '#6B7280',
+          color: '#475569',
+          bgColor: '#F1F5F9',
+          borderColor: '#E2E8F0',
           label: 'INCOMPLETE',
           desc: 'Some telemetry fields missing',
         };
       case 'unavailable':
       default:
         return {
-          color: '#EF4444', // Red
-          bgColor: '#7F1D1D',
-          borderColor: '#DC2626',
+          color: '#B91C1C',
+          bgColor: '#FEE2E2',
+          borderColor: '#FECACA',
           label: 'UNAVAILABLE',
           desc: 'No live telemetry link',
         };
@@ -94,13 +94,13 @@ const styles = StyleSheet.create({
     marginRight: 5,
   },
   compactText: {
-    fontSize: 11,
-    fontWeight: '700',
+    fontSize: 10,
+    fontWeight: '800',
     letterSpacing: 0.5,
   },
   card: {
-    padding: 10,
-    borderRadius: 8,
+    padding: 12,
+    borderRadius: 10,
     borderWidth: 1,
     marginVertical: 4,
   },
@@ -116,29 +116,30 @@ const styles = StyleSheet.create({
   timeTag: {
     marginLeft: 'auto',
     fontSize: 11,
-    color: '#D1D5DB',
+    color: '#64748B',
+    fontWeight: '600',
   },
   descText: {
-    fontSize: 11,
-    color: '#F3F4F6',
+    fontSize: 12,
+    color: '#334155',
     marginTop: 3,
   },
   notesText: {
     fontSize: 11,
-    color: '#FDE68A',
+    color: '#B45309',
     marginTop: 4,
     fontStyle: 'italic',
   },
   timesContainer: {
-    marginTop: 6,
-    paddingTop: 6,
+    marginTop: 8,
+    paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: '#E2E8F0',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   metaText: {
     fontSize: 10,
-    color: '#9CA3AF',
+    color: '#64748B',
   },
 });

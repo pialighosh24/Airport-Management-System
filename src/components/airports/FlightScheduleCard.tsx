@@ -25,18 +25,18 @@ export function FlightScheduleCard({ item }: Props) {
   const getStatusBadge = () => {
     switch (item.status) {
       case 'boarding':
-        return { bg: '#065F46', text: '#34D399', label: 'BOARDING' };
+        return { bg: '#DCFCE7', text: '#15803D', border: '#86EFAC', label: 'BOARDING' };
       case 'delayed':
-        return { bg: '#78350F', text: '#FBBF24', label: `DELAYED (+${item.delayMinutes}m)` };
+        return { bg: '#FEF3C7', text: '#B45309', border: '#FDE68A', label: `DELAYED (+${item.delayMinutes}m)` };
       case 'landed':
-        return { bg: '#1E3A8A', text: '#60A5FA', label: 'LANDED' };
+        return { bg: '#E0F2FE', text: '#0369A1', border: '#BAE6FD', label: 'LANDED' };
       case 'departed':
-        return { bg: '#312E81', text: '#A5B4FC', label: 'DEPARTED' };
+        return { bg: '#EEF2FF', text: '#4338CA', border: '#C7D2FE', label: 'DEPARTED' };
       case 'cancelled':
-        return { bg: '#7F1D1D', text: '#F87171', label: 'CANCELLED' };
+        return { bg: '#FEE2E2', text: '#B91C1C', border: '#FECACA', label: 'CANCELLED' };
       case 'scheduled':
       default:
-        return { bg: '#1E293B', text: '#94A3B8', label: 'ON TIME' };
+        return { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0', label: 'ON TIME' };
     }
   };
 
@@ -52,7 +52,7 @@ export function FlightScheduleCard({ item }: Props) {
         </View>
 
         <View style={styles.badgesRight}>
-          <View style={[styles.statusBadge, { backgroundColor: badge.bg }]}>
+          <View style={[styles.statusBadge, { backgroundColor: badge.bg, borderColor: badge.border }]}>
             <Text style={[styles.statusBadgeText, { color: badge.text }]}>{badge.label}</Text>
           </View>
 
@@ -63,7 +63,7 @@ export function FlightScheduleCard({ item }: Props) {
             <Ionicons
               name={isSaved ? 'bookmark' : 'bookmark-outline'}
               size={18}
-              color={isSaved ? '#38BDF8' : '#64748B'}
+              color={isSaved ? '#0284C7' : '#94A3B8'}
             />
           </TouchableOpacity>
         </View>
@@ -74,7 +74,7 @@ export function FlightScheduleCard({ item }: Props) {
         <Ionicons
           name={item.type === 'departure' ? 'airplane-outline' : 'airplane'}
           size={16}
-          color="#38BDF8"
+          color="#0284C7"
           style={{ transform: [{ rotate: item.type === 'departure' ? '45deg' : '-45deg' }] }}
         />
         <Text style={styles.destinationText}>
@@ -92,7 +92,7 @@ export function FlightScheduleCard({ item }: Props) {
           <Text style={styles.timeBlockValue}>{formatClock(item.scheduledTimeUtc)}</Text>
         </View>
 
-        <Ionicons name="arrow-forward" size={14} color="#64748B" style={{ marginTop: 12 }} />
+        <Ionicons name="arrow-forward" size={14} color="#94A3B8" style={{ marginTop: 12 }} />
 
         {/* Estimated / Revised Time */}
         <View style={styles.timeBlock}>
@@ -100,7 +100,7 @@ export function FlightScheduleCard({ item }: Props) {
           <Text
             style={[
               styles.timeBlockValue,
-              isDelayed && { color: '#F59E0B' },
+              isDelayed && { color: '#B45309', fontWeight: '800' },
               !item.estimatedTimeUtc && { color: '#94A3B8' },
             ]}
           >
@@ -111,10 +111,10 @@ export function FlightScheduleCard({ item }: Props) {
         {/* Actual Time if departed/landed */}
         {item.actualTimeUtc ? (
           <>
-            <Ionicons name="checkmark-done" size={14} color="#10B981" style={{ marginTop: 12 }} />
+            <Ionicons name="checkmark-done" size={14} color="#059669" style={{ marginTop: 12 }} />
             <View style={styles.timeBlock}>
               <Text style={styles.timeBlockLabel}>ACTUAL</Text>
-              <Text style={[styles.timeBlockValue, { color: '#10B981' }]}>
+              <Text style={[styles.timeBlockValue, { color: '#059669' }]}>
                 {formatClock(item.actualTimeUtc)}
               </Text>
             </View>
@@ -125,18 +125,18 @@ export function FlightScheduleCard({ item }: Props) {
       {/* Facility locations: Terminal, Gate, Carousel */}
       <View style={styles.facilitiesRow}>
         <View style={styles.facilityItem}>
-          <Ionicons name="business-outline" size={12} color="#94A3B8" />
+          <Ionicons name="business-outline" size={13} color="#64748B" />
           <Text style={styles.facilityLabel}>Terminal:</Text>
           <Text style={styles.facilityValue}>{item.terminal || 'Unavailable'}</Text>
         </View>
 
         <View style={styles.facilityItem}>
-          <Ionicons name="enter-outline" size={12} color="#94A3B8" />
+          <Ionicons name="enter-outline" size={13} color="#64748B" />
           <Text style={styles.facilityLabel}>Gate:</Text>
           <Text
             style={[
               styles.facilityValue,
-              !item.gate && { color: '#F59E0B', fontStyle: 'italic' },
+              !item.gate && { color: '#D97706', fontStyle: 'italic' },
             ]}
           >
             {item.gate || 'Pending Ops'}
@@ -145,7 +145,7 @@ export function FlightScheduleCard({ item }: Props) {
 
         {item.type === 'arrival' ? (
           <View style={styles.facilityItem}>
-            <Ionicons name="bag-handle-outline" size={12} color="#94A3B8" />
+            <Ionicons name="bag-handle-outline" size={13} color="#64748B" />
             <Text style={styles.facilityLabel}>Belt:</Text>
             <Text
               style={[
@@ -177,10 +177,10 @@ export function FlightScheduleCard({ item }: Props) {
         >
           <Ionicons
             name={isSaved ? 'notifications' : 'notifications-outline'}
-            size={12}
-            color={isSaved ? '#38BDF8' : '#94A3B8'}
+            size={13}
+            color={isSaved ? '#0284C7' : '#64748B'}
           />
-          <Text style={[styles.alertActionBtnText, isSaved && { color: '#38BDF8' }]}>
+          <Text style={[styles.alertActionBtnText, isSaved && { color: '#0284C7' }]}>
             {isSaved ? 'Alert Active' : 'Set Delay Alert'}
           </Text>
         </TouchableOpacity>
@@ -189,15 +189,19 @@ export function FlightScheduleCard({ item }: Props) {
   );
 }
 
-
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0F1A36',
-    borderRadius: 12,
-    padding: 14,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 14,
+    padding: 16,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
   topRow: {
     flexDirection: 'row',
@@ -210,11 +214,11 @@ const styles = StyleSheet.create({
   flightNumber: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   airlineName: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 1,
   },
   badgesRight: {
@@ -226,6 +230,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
+    borderWidth: 1,
   },
   statusBadgeText: {
     fontSize: 10,
@@ -243,25 +248,27 @@ const styles = StyleSheet.create({
   },
   destinationText: {
     fontSize: 13,
-    color: '#94A3B8',
+    color: '#475569',
   },
   destinationCity: {
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   destinationIata: {
     fontWeight: '800',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   timeComparisonContainer: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-around',
-    backgroundColor: '#0A1329',
-    borderRadius: 8,
+    backgroundColor: '#F8FAFC',
+    borderRadius: 10,
     paddingVertical: 10,
     paddingHorizontal: 12,
-    marginVertical: 10,
+    marginVertical: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   timeBlock: {
     alignItems: 'center',
@@ -275,15 +282,15 @@ const styles = StyleSheet.create({
   timeBlockValue: {
     fontSize: 15,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   facilitiesRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
-    paddingBottom: 8,
+    gap: 14,
+    paddingBottom: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: '#F1F5F9',
   },
   facilityItem: {
     flexDirection: 'row',
@@ -297,13 +304,13 @@ const styles = StyleSheet.create({
   facilityValue: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#E2E8F0',
+    color: '#1E293B',
   },
   actionRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 10,
     paddingTop: 4,
   },
   freshnessGroup: {
@@ -314,26 +321,27 @@ const styles = StyleSheet.create({
   providerTag: {
     fontSize: 10,
     color: '#64748B',
+    fontWeight: '500',
   },
   alertActionBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     borderRadius: 6,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#E2E8F0',
   },
   alertActionBtnActive: {
-    backgroundColor: 'rgba(2, 132, 199, 0.15)',
-    borderColor: 'rgba(56, 189, 248, 0.4)',
+    backgroundColor: '#E0F2FE',
+    borderColor: '#BAE6FD',
   },
   alertActionBtnText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#475569',
   },
 });
 
