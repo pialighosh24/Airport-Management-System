@@ -296,8 +296,8 @@ export function FlightProvider({ children }: { children: React.ReactNode }) {
   };
 
   const loginStaff = (pin: string) => {
-    // Quick demo PIN: 7700 (squawk emergency) or 1234
-    if (pin === '7700' || pin === '1234' || pin === 'admin') {
+    // Blueprint Staff PIN: 2026 (or emergency demo PIN: 7700 / 1234)
+    if (pin === '2026' || pin === '7700' || pin === '1234' || pin === 'admin') {
       setIsStaffAuthenticated(true);
       return true;
     }

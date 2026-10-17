@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   TextInput,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { DisruptionCard } from '@/components/staff/DisruptionCard';
@@ -32,7 +32,7 @@ export default function StaffScreen() {
     const pin = pinToUse || pinInput;
     const success = loginStaff(pin);
     if (!success) {
-      Alert.alert('Access Denied', 'Invalid Staff PIN. Demo PIN is: 7700 (or 1234)');
+      Alert.alert('Access Denied', 'Invalid Staff PIN. Demo PIN is: 2026 (or 7700)');
     } else {
       setPinInput('');
     }
@@ -73,7 +73,7 @@ export default function StaffScreen() {
                   style={styles.pinInput}
                   value={pinInput}
                   onChangeText={setPinInput}
-                  placeholder="Demo PIN: 7700"
+                  placeholder="Demo PIN: 2026 (or 7700)"
                   placeholderTextColor="#64748B"
                   keyboardType="numeric"
                   secureTextEntry
@@ -87,10 +87,10 @@ export default function StaffScreen() {
                 {/* 1-Tap Quick Demo Unlock for testing */}
                 <TouchableOpacity
                   style={styles.quickUnlockBtn}
-                  onPress={() => handleLogin('7700')}
+                  onPress={() => handleLogin('2026')}
                 >
                   <Ionicons name="key-outline" size={14} color="#38BDF8" />
-                  <Text style={styles.quickUnlockText}>1-Tap Fast Unlock (PIN: 7700)</Text>
+                  <Text style={styles.quickUnlockText}>1-Tap Fast Unlock (PIN: 2026)</Text>
                 </TouchableOpacity>
               </View>
             </View>
