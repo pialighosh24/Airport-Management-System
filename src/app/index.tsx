@@ -3,15 +3,16 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ActivityIndicator,
   TouchableOpacity,
   TextInput,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { AircraftRadarView } from '@/components/map/AircraftRadarView';
+import { MobileMapView } from '@/components/map/MobileMapView';
 import { FlightDetailModal } from '@/components/map/FlightDetailModal';
 import { useFlight } from '@/context/FlightContext';
 import { AircraftTelemetry } from '@/types';
@@ -37,6 +38,7 @@ export default function RadarMapScreen() {
   const [modalVisible, setModalVisible] = useState(false);
   const [showServerConfig, setShowServerConfig] = useState(false);
   const [customUrlInput, setCustomUrlInput] = useState(serverUrl);
+  const [viewFormat, setViewFormat] = useState<'map' | 'radar'>('map');
 
   const handleSelectAircraft = (aircraft: AircraftTelemetry | null) => {
     setSelectedAircraft(aircraft);
@@ -118,6 +120,53 @@ export default function RadarMapScreen() {
                 <Text style={styles.demoTagText}>SIMULATED</Text>
               </View>
             )}
+          </TouchableOpacity>
+        </View>
+
+        {/* View Switcher: GIS Map vs Tactical Radar */}
+        <View style={styles.viewSwitcherBar}>
+          <TouchableOpacity
+            style={[
+              styles.viewSwitcherBtn,
+              viewFormat === 'map' && styles.viewSwitcherBtnActive,
+            ]}
+            onPress={() => setViewFormat('map')}
+          >
+            <Ionicons
+              name="map"
+              size={13}
+              color={viewFormat === 'map' ? '#38BDF8' : '#94A3B8'}
+            />
+            <Text
+              style={[
+                styles.viewSwitcherText,
+                viewFormat === 'map' && styles.viewSwitcherTextActive,
+              ]}
+            >
+              Geographic Map (GIS)
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={[
+              styles.viewSwitcherBtn,
+              viewFormat === 'radar' && styles.viewSwitcherBtnActive,
+            ]}
+            onPress={() => setViewFormat('radar')}
+          >
+            <Ionicons
+              name="radio"
+              size={13}
+              color={viewFormat === 'radar' ? '#10B981' : '#94A3B8'}
+            />
+            <Text
+              style={[
+                styles.viewSwitcherText,
+                viewFormat === 'radar' && styles.viewSwitcherTextActive,
+              ]}
+            >
+              Tactical Radar (2D)
+            </Text>
           </TouchableOpacity>
         </View>
 
@@ -306,8 +355,18 @@ export default function RadarMapScreen() {
               <Text style={styles.retryBtnText}>Reload Flights</Text>
             </TouchableOpacity>
           </View>
+        ) : viewFormat === 'map' ? (
+          /* Success: Geographic Mobile Map (React Native Maps) */
+          <MobileMapView
+            aircraftList={aircraftList}
+            selectedAircraft={selectedAircraft}
+            onSelectAircraft={handleSelectAircraft}
+            onOpenDetails={handleOpenDetailModal}
+            airspacePreset={airspacePreset}
+            isLive={radarMode === 'live'}
+          />
         ) : (
-          /* Success: Radar & Flight List View */
+          /* Success: Tactical 2D Polar Radar */
           <AircraftRadarView
             aircraftList={aircraftList}
             onSelectAircraft={handleSelectAircraft}
@@ -671,5 +730,39 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: '#FCD34D',
     fontWeight: '600',
+  },
+  viewSwitcherBar: {
+    flexDirection: 'row',
+    backgroundColor: '#0A142A',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1E293B',
+  },
+  viewSwitcherBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0F1A36',
+    paddingVertical: 7,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#1E293B',
+    gap: 6,
+  },
+  viewSwitcherBtnActive: {
+    backgroundColor: '#1E293B',
+    borderColor: '#38BDF8',
+  },
+  viewSwitcherText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#94A3B8',
+  },
+  viewSwitcherTextActive: {
+    color: '#38BDF8',
+    fontWeight: '800',
   },
 });
