@@ -4,6 +4,7 @@ const {
   searchAirportsHandler,
   getAirportHubsHandler,
   getAirportByCodeHandler,
+  getMasterAirportsHandler,
   getAirportWeatherHandler,
 } = require('../controllers/airportController');
 
@@ -22,6 +23,12 @@ router.get('/', searchAirportsHandler);
  * @desc    Get curated list of major domestic and international airport hubs
  */
 router.get('/hubs', getAirportHubsHandler);
+
+/**
+ * @route   GET /api/airports/master
+ * @desc    Get master dataset of airports with coordinates, timezones, and elevation
+ */
+router.get('/master', getMasterAirportsHandler);
 
 /**
  * @route   GET /api/airports/:code/schedule

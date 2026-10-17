@@ -9,6 +9,7 @@ const { DEMO_AIRPORTS, DEMO_DISCLAIMER } = require('../data/demoData');
 const { searchAirports } = require('../services/airportService');
 const { getWeatherForCoordinates } = require('../services/weatherService');
 const flightAwareService = require('../services/flightAwareService');
+const airportMasterService = require('../services/airportMasterService');
 
 
 const VALID_TYPES = ['all', 'departure', 'arrival'];
@@ -295,15 +296,13 @@ const getAirportByCodeHandler = async (req, res) => {
     });
   }
 
-  // 1. Check curated hubs first
-  const hubMatch = DEFAULT_HUBS.find(
-    (h) => h.iata === cleanCode || h.icao === cleanCode
-  );
-  if (hubMatch) {
+  // 1. Check master airport dataset first (covers major hubs and key domestic/international airports)
+  const masterMatch = airportMasterService.getAirportByCode(cleanCode);
+  if (masterMatch) {
     return res.status(200).json({
       success: true,
-      source: 'AeroNexus Airport Hub Registry',
-      data: hubMatch,
+      source: 'AeroNexus Airport Master Dataset',
+      data: masterMatch,
     });
   }
 
@@ -335,6 +334,23 @@ const getAirportByCodeHandler = async (req, res) => {
       message: `Failed to retrieve airport data: ${err.message}`,
     });
   }
+};
+
+/**
+ * @route   GET /api/airports/master
+ * @desc    Get master airports registry with coordinates, timezones, and elevation
+ * @query   country: optional 2-letter country code filter (e.g. 'IN', 'US')
+ */
+const getMasterAirportsHandler = (req, res) => {
+  const { country } = req.query;
+  const list = airportMasterService.getAllMasterAirports({ countryCode: country });
+  return res.status(200).json({
+    success: true,
+    isDemo: false,
+    source: 'AeroNexus Airport Master Dataset',
+    count: list.length,
+    data: list,
+  });
 };
 
 /**
@@ -516,6 +532,7 @@ module.exports = {
   searchAirportsHandler,
   getAirportHubsHandler,
   getAirportByCodeHandler,
+  getMasterAirportsHandler,
   getAirportWeatherHandler,
   DEFAULT_HUBS,
 };
