@@ -1,13 +1,19 @@
 const express = require('express');
-const { getFares, priceCheck } = require('../controllers/fareController');
+const { getFares, priceCheck, getCurrencyRates } = require('../controllers/fareController');
 
 const router = express.Router();
 
 /**
  * @route   GET /api/fares
- * @desc    Get demo flight fares with transparent ranking criteria
+ * @desc    Get flight fares with transparent ranking criteria and live FX conversion
  */
 router.get('/', getFares);
+
+/**
+ * @route   GET /api/fares/exchange-rates
+ * @desc    Get real-time / cached currency exchange rates with source provenance
+ */
+router.get('/exchange-rates', getCurrencyRates);
 
 /**
  * @route   POST /api/fares/:offerId/price-check

@@ -11,6 +11,7 @@
 
 const { DEMO_FARES, DEMO_DISCLAIMER } = require('../data/demoData');
 const amadeusService = require('../services/amadeusService');
+const currencyService = require('../services/currencyService');
 
 const VALID_SORT_OPTIONS = ['cheapest', 'fastest', 'best_value', 'fewest_stops'];
 
@@ -135,14 +136,24 @@ const getFares = async (req, res) => {
     best_value: 'Ranked by Blueprint weighted score (0.55 price + 0.30 duration + 0.15 stops) factoring checked baggage charges.',
   };
 
+  // Fetch exchange rate metadata with transparent source attribution
+  let fxData = { rates: { INR: 84.0 }, rateTimestampUtc: new Date().toISOString(), source: 'AeroNexus Fallback Reference Table', isLive: false };
+  try {
+    fxData = await currencyService.getExchangeRates();
+  } catch (err) {
+    // Keep fallback
+  }
+  const currentFxRate = fxData.rates?.INR || 84.00;
+
   res.status(200).json({
     success: true,
     isDemo: !isLive,
     isLive,
     source: dataSource,
     currency: isUSD ? 'USD' : 'INR',
-    fxRateTimestampUtc: new Date().toISOString(),
-    fxRateUsdToInr: 84.00,
+    fxRateTimestampUtc: fxData.rateTimestampUtc,
+    fxRateUsdToInr: currentFxRate,
+    fxRateSource: fxData.source,
     disclaimer: isLive
       ? 'Live flight offer data retrieved via Amadeus Global Distribution System. Final availability and pricing confirmed at checkout.'
       : DEMO_DISCLAIMER,
@@ -188,7 +199,25 @@ const priceCheck = (req, res) => {
   });
 };
 
+/**
+ * @route   GET /api/fares/exchange-rates
+ * @desc    Get live or cached foreign exchange rates with transparent source attribution
+ */
+const getCurrencyRates = async (req, res) => {
+  try {
+    const rates = await currencyService.getExchangeRates();
+    return res.status(200).json(rates);
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      error: 'CurrencyServiceError',
+      message: err.message,
+    });
+  }
+};
+
 module.exports = {
   getFares,
   priceCheck,
+  getCurrencyRates,
 };
