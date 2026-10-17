@@ -123,8 +123,9 @@ export interface BaggageRules {
   cabinBagIncluded: boolean;
   cabinBagWeightKg: number | null; // e.g. 7kg or 10kg
   checkedBagIncluded: boolean;
-  checkedBagWeightKg: number | null; // e.g. 23kg
-  extraCheckedBagFeeUsd: number | null; // fee if checked bag not included
+  checkedBagWeightKg: number | null; // e.g. 15kg or 23kg
+  extraCheckedBagFeeUsd: number | null; // fee if checked bag not included (USD)
+  extraCheckedBagFeeInr?: number | null; // fee if checked bag not included (INR)
 }
 
 export interface FlightFare {
@@ -133,12 +134,19 @@ export interface FlightFare {
   airlineCode: string;
   flightNumber: string;
   originIata: string;
+  originCity?: string;
   destinationIata: string;
+  destinationCity?: string;
   departureTimeUtc: string;
   arrivalTimeUtc: string;
   durationMinutes: number;
   stopsCount: number;              // 0 for non-stop
   travelClass: 'Economy' | 'Premium Economy' | 'Business';
+  // Primary INR Currency (Default per Blueprint v2.0)
+  totalFareInr: number;
+  baseFareInr: number;
+  taxesAndAirportFeesInr: number;
+  // Secondary USD Currency (via FX rate)
   baseFareUsd: number;
   taxesAndAirportFeesUsd: number;
   totalFareUsd: number;
@@ -146,6 +154,9 @@ export interface FlightFare {
   cancellationPolicy: string;
   availableSeats: number;
   isTransparentGuaranteed: boolean; // Guarantee of zero hidden fees at checkout
+  supplierName?: string;
+  priceCheckStatus?: 'verified' | 'pending' | 'price_increased';
+  bookingUrl?: string;
 }
 
 export interface DisruptionCase {
@@ -186,3 +197,31 @@ export interface AlertNotification {
   timestampUtc: string;
   read: boolean;
 }
+
+export interface AirportWeather {
+  success: boolean;
+  isLive: boolean;
+  source: string;
+  disclaimer: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+    elevation: number | null;
+  };
+  weather: {
+    temperatureC: number | null;
+    relativeHumidityPct: number | null;
+    windSpeedKnots: number | null;
+    windDirectionDeg: number | null;
+    weatherCode: number | null;
+    condition: string;
+  };
+  forecastTimeUtc: string | null;
+  retrievedAtUtc: string;
+  airport?: {
+    code: string;
+    name: string | null;
+  } | null;
+  fromCache?: boolean;
+}
+

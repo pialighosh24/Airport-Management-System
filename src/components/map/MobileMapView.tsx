@@ -15,6 +15,7 @@ import { FreshnessIndicator } from '@/components/common/FreshnessIndicator';
 let MapView: any = null;
 let Marker: any = null;
 let Callout: any = null;
+let PROVIDER_GOOGLE: any = null;
 
 if (Platform.OS !== 'web') {
   try {
@@ -22,6 +23,7 @@ if (Platform.OS !== 'web') {
     MapView = MapsModule.default || MapsModule.MapView;
     Marker = MapsModule.Marker;
     Callout = MapsModule.Callout;
+    PROVIDER_GOOGLE = MapsModule.PROVIDER_GOOGLE;
   } catch (e) {
     // Graceful fallback if native binaries are not yet compiled
     MapView = null;
@@ -214,6 +216,7 @@ export function MobileMapView({
     <View style={styles.container}>
       <MapView
         ref={mapRef}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
         style={styles.map}
         initialRegion={initialRegion}
         mapType={mapType}

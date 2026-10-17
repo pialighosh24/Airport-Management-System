@@ -12,7 +12,8 @@
 
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail } from '@/types';
+import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail, AirportWeather } from '@/types';
+
 
 // Detect the best default backend URL based on platform and environment
 export function getDefaultBaseUrl(): string {
@@ -237,14 +238,129 @@ export const apiService = {
   /**
    * Fares Comparison: GET /api/fares
    */
-  async getFares(filters?: { origin?: string; destination?: string; sortBy?: string }): Promise<ApiResponse<FlightFare[]>> {
+  async getFares(filters?: {
+    origin?: string;
+    destination?: string;
+    currency?: 'INR' | 'USD';
+    sortBy?: string;
+  }): Promise<ApiResponse<FlightFare[]>> {
     const params = new URLSearchParams();
     if (filters?.origin) params.append('origin', filters.origin);
     if (filters?.destination) params.append('destination', filters.destination);
+    if (filters?.currency) params.append('currency', filters.currency);
     if (filters?.sortBy) params.append('sortBy', filters.sortBy);
 
     const queryString = params.toString() ? `?${params.toString()}` : '';
     return fetchWithTimeout<ApiResponse<FlightFare[]>>(`/api/fares${queryString}`);
   },
+
+  /**
+   * Price-Check Revalidation: POST /api/fares/:offerId/price-check (Blueprint Section 11)
+   */
+  async priceCheck(offerId: string): Promise<{
+    success: boolean;
+    revalidated: boolean;
+    offerId: string;
+    guaranteedPriceInr: number;
+    guaranteedPriceUsd: number;
+    seatsAvailable: number;
+    supplierName: string;
+    priceLockMinutes: number;
+    supplierNotice: string;
+    verifiedAtUtc: string;
+  }> {
+    return fetchWithTimeout(`/api/fares/${encodeURIComponent(offerId)}/price-check`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Curated Airport Hubs: GET /api/airports/hubs
+   */
+  async getAirportHubs(): Promise<ApiResponse<AirportDetail[]>> {
+    return fetchWithTimeout<ApiResponse<AirportDetail[]>>('/api/airports/hubs');
+  },
+
+  /**
+   * Single Airport Details: GET /api/airports/:code
+   */
+  async getAirportByCode(code: string): Promise<ApiResponse<AirportDetail>> {
+    return fetchWithTimeout<ApiResponse<AirportDetail>>(`/api/airports/${encodeURIComponent(code)}`);
+  },
+
+  /**
+   * Live Meteorological Data from Open-Meteo: GET /api/weather
+   * @param options lat/lon or airport code
+   */
+  async getAirportWeather(options: { lat?: number; lon?: number; airport?: string }): Promise<AirportWeather> {
+    const params = new URLSearchParams();
+    if (options.airport) params.append('airport', options.airport);
+    if (options.lat != null) params.append('lat', options.lat.toString());
+    if (options.lon != null) params.append('lon', options.lon.toString());
+
+    return fetchWithTimeout<AirportWeather>(`/api/weather?${params.toString()}`);
+  },
+
+  /**
+   * Master Airports Registry: GET /api/airports/master
+   */
+  async getMasterAirports(country?: string): Promise<ApiResponse<AirportDetail[]>> {
+    const params = new URLSearchParams();
+    if (country) params.append('country', country);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchWithTimeout<ApiResponse<AirportDetail[]>>(`/api/airports/master${qs}`);
+  },
+
+  /**
+   * Currency Exchange Rates: GET /api/fares/exchange-rates
+   */
+  async getExchangeRates(): Promise<{
+    success: boolean;
+    isLive: boolean;
+    base: string;
+    rates: Record<string, number>;
+    source: string;
+    rateTimestampUtc: string;
+  }> {
+    return fetchWithTimeout('/api/fares/exchange-rates');
+  },
+
+  /**
+   * Ground Operations Cases: GET /api/ops/cases
+   */
+  async getOpsCases(): Promise<ApiResponse<any[]>> {
+    return fetchWithTimeout<ApiResponse<any[]>>('/api/ops/cases');
+  },
+
+  /**
+   * Turnaround Milestones: GET /api/ops/milestones
+   */
+  async getTurnaroundMilestones(): Promise<ApiResponse<any[]>> {
+    return fetchWithTimeout<ApiResponse<any[]>>('/api/ops/milestones');
+  },
+
+  /**
+   * Notification Delay & Gate Alerts: GET /api/alerts
+   */
+  async getAlerts(): Promise<ApiResponse<any[]>> {
+    return fetchWithTimeout<ApiResponse<any[]>>('/api/alerts');
+  },
+
+  /**
+   * Register Alert Subscription: POST /api/alerts
+   */
+  async createAlertSubscription(subscription: {
+    flightNumber: string;
+    type?: string;
+    email?: string;
+    thresholdMinutes?: number;
+    quietHours?: { enabled: boolean; startUtc: string; endUtc: string };
+  }): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>('/api/alerts', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+    });
+  },
 };
+
 
