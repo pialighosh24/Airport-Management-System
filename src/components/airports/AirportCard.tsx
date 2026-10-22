@@ -98,12 +98,17 @@ export function AirportCard({ airport, onPress }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 14,
     marginBottom: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
   },
   topRow: {
     flexDirection: 'row',
@@ -129,34 +134,34 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   icaoBadge: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#CBD5E1',
   },
   icaoText: {
-    color: '#94A3B8',
+    color: '#475569',
     fontWeight: '700',
     fontSize: 12,
     letterSpacing: 0.5,
   },
   typeBadge: {
-    backgroundColor: 'rgba(56, 189, 248, 0.12)',
+    backgroundColor: '#E0F2FE',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.25)',
+    borderColor: '#BAE6FD',
   },
   typeText: {
-    color: '#38BDF8',
+    color: '#0369A1',
     fontSize: 11,
     fontWeight: '600',
   },
   airportName: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 15,
     fontWeight: '700',
     lineHeight: 20,
@@ -168,7 +173,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   locationText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
     fontWeight: '500',
     flex: 1,
@@ -178,7 +183,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: '#F1F5F9',
     justifyContent: 'space-between',
   },
   metaItem: {
@@ -187,7 +192,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
   },
   metaText: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 11,
     fontWeight: '500',
   },

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, StatusBar, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFlight } from '@/context/FlightContext';
+import { Palette } from '@/constants/theme';
 
 interface Props {
   title?: string;
@@ -13,11 +14,11 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor="#0B132B" />
+      <StatusBar barStyle="dark-content" backgroundColor={Palette.surface} />
       <View style={styles.topRow}>
         <View style={styles.branding}>
           <View style={styles.iconCircle}>
-            <Ionicons name="airplane" size={18} color="#38BDF8" />
+            <Ionicons name="airplane" size={18} color={Palette.primary} />
           </View>
           <View>
             <Text style={styles.title}>{title}</Text>
@@ -28,7 +29,11 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
         <TouchableOpacity 
           style={[
             styles.badge, 
-            isBackendConnected ? styles.badgeConnected : styles.badgeDisconnected
+            isBackendConnected
+              ? styles.badgeConnected
+              : isLoadingFlights
+              ? styles.badgeConnecting
+              : styles.badgeDisconnected
           ]}
           onPress={() => fetchFlights()}
           activeOpacity={0.7}
@@ -38,10 +43,10 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
               styles.liveDot,
               {
                 backgroundColor: isBackendConnected
-                  ? '#10B981'
+                  ? Palette.success
                   : isLoadingFlights
-                  ? '#F59E0B'
-                  : '#EF4444',
+                  ? Palette.warning
+                  : Palette.danger,
               },
             ]}
           />
@@ -50,10 +55,10 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
               styles.badgeText,
               {
                 color: isBackendConnected
-                  ? '#34D399'
+                  ? Palette.successText
                   : isLoadingFlights
-                  ? '#FBBF24'
-                  : '#F87171',
+                  ? Palette.warningText
+                  : Palette.dangerText,
               },
             ]}
           >
@@ -67,9 +72,9 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
       </View>
 
       <View style={styles.principlePill}>
-        <Ionicons name="link-outline" size={12} color="#38BDF8" style={{ marginRight: 4 }} />
+        <Ionicons name="link-outline" size={13} color={Palette.primary} style={{ marginRight: 6 }} />
         <Text style={styles.principleText} numberOfLines={1}>
-          API: {serverUrl} • Demo Mode Active
+          API: {serverUrl} • Solid State Sync Active
         </Text>
       </View>
     </View>
@@ -78,12 +83,17 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: '#0B132B',
+    backgroundColor: Palette.surface,
     paddingTop: 12,
-    paddingBottom: 10,
+    paddingBottom: 12,
     paddingHorizontal: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#1C2541',
+    borderBottomColor: Palette.border,
+    elevation: 2,
+    shadowColor: '#000000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.03,
+    shadowRadius: 2,
   },
   topRow: {
     flexDirection: 'row',
@@ -95,68 +105,73 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconCircle: {
-    width: 34,
-    height: 34,
-    borderRadius: 17,
-    backgroundColor: 'rgba(56, 189, 248, 0.15)',
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: Palette.primaryLight,
     alignItems: 'center',
     justifyContent: 'center',
     marginRight: 10,
     borderWidth: 1,
-    borderColor: 'rgba(56, 189, 248, 0.3)',
+    borderColor: '#BAE6FD',
   },
   title: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#F8FAFC',
-    letterSpacing: 0.5,
+    color: Palette.textPrimary,
+    letterSpacing: -0.2,
   },
   subtitle: {
-    fontSize: 11,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: Palette.textMuted,
     fontWeight: '500',
+    marginTop: 1,
   },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1C2541',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 14,
     borderWidth: 1,
-    borderColor: '#3A506B',
   },
   badgeConnected: {
-    borderColor: '#059669',
-    backgroundColor: 'rgba(6, 78, 59, 0.5)',
+    borderColor: '#A7F3D0',
+    backgroundColor: Palette.successBg,
+  },
+  badgeConnecting: {
+    borderColor: '#FDE68A',
+    backgroundColor: Palette.warningBg,
   },
   badgeDisconnected: {
-    borderColor: '#7F1D1D',
-    backgroundColor: 'rgba(127, 29, 29, 0.5)',
+    borderColor: '#FECACA',
+    backgroundColor: Palette.dangerBg,
   },
   liveDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginRight: 5,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    marginRight: 6,
   },
   badgeText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.4,
   },
   principlePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(28, 37, 65, 0.6)',
+    backgroundColor: Palette.surfaceSubtle,
     paddingHorizontal: 10,
-    paddingVertical: 4,
+    paddingVertical: 5,
     borderRadius: 6,
-    marginTop: 8,
+    marginTop: 10,
+    borderWidth: 1,
+    borderColor: Palette.border,
   },
   principleText: {
-    color: '#94A3B8',
-    fontSize: 10,
+    color: Palette.textSecondary,
+    fontSize: 11,
     fontWeight: '500',
   },
 });

@@ -89,7 +89,7 @@ export default function FaresScreen() {
             </View>
 
             <View style={styles.routeArrow}>
-              <Ionicons name="swap-horizontal" size={18} color="#38BDF8" />
+              <Ionicons name="swap-horizontal" size={18} color="#0284C7" />
             </View>
 
             <View style={[styles.routeBox, { alignItems: 'flex-end' }]}>
@@ -118,7 +118,7 @@ export default function FaresScreen() {
               <Ionicons
                 name="star"
                 size={12}
-                color={sortBy === 'best_value' ? '#FFFFFF' : '#38BDF8'}
+                color={sortBy === 'best_value' ? '#FFFFFF' : '#0284C7'}
               />
               <Text
                 style={[
@@ -140,7 +140,7 @@ export default function FaresScreen() {
               <Ionicons
                 name="pricetag-outline"
                 size={12}
-                color={sortBy === 'cheapest' ? '#FFFFFF' : '#94A3B8'}
+                color={sortBy === 'cheapest' ? '#FFFFFF' : '#64748B'}
               />
               <Text
                 style={[
@@ -162,7 +162,7 @@ export default function FaresScreen() {
               <Ionicons
                 name="flash-outline"
                 size={12}
-                color={sortBy === 'fastest' ? '#FFFFFF' : '#94A3B8'}
+                color={sortBy === 'fastest' ? '#FFFFFF' : '#64748B'}
               />
               <Text
                 style={[
@@ -176,7 +176,7 @@ export default function FaresScreen() {
           </View>
 
           <View style={styles.sortExplainBox}>
-            <Ionicons name="information-circle-outline" size={13} color="#38BDF8" />
+            <Ionicons name="information-circle-outline" size={14} color="#0284C7" />
             <Text style={styles.sortExplainText}>{getSortExplanation()}</Text>
           </View>
         </View>
@@ -184,7 +184,7 @@ export default function FaresScreen() {
         {/* Offline indicator if backend call failed */}
         {errorMsg && (
           <View style={styles.errorNotice}>
-            <Ionicons name="information-circle-outline" size={13} color="#FDE68A" />
+            <Ionicons name="information-circle-outline" size={13} color="#D97706" />
             <Text style={styles.errorNoticeText}>
               Backend unreachable — displaying local demo fares.
             </Text>
@@ -195,7 +195,7 @@ export default function FaresScreen() {
         <ScrollView style={styles.faresList} showsVerticalScrollIndicator={false}>
           {isLoading ? (
             <View style={styles.loadingBox}>
-              <ActivityIndicator size="small" color="#38BDF8" />
+              <ActivityIndicator size="small" color="#0284C7" />
               <Text style={styles.loadingText}>Fetching fare comparisons from backend...</Text>
             </View>
           ) : (
@@ -223,20 +223,20 @@ export default function FaresScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B132B',
+    backgroundColor: '#F8FAFC',
   },
   container: {
     flex: 1,
-    backgroundColor: '#070D1E',
+    backgroundColor: '#F8FAFC',
   },
   routeHeaderCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
     marginTop: 10,
     borderRadius: 12,
-    padding: 12,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   routeRow: {
     flexDirection: 'row',
@@ -247,15 +247,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   routeLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
     color: '#64748B',
     marginBottom: 2,
+    letterSpacing: 0.5,
   },
   routeCity: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   routeArrow: {
     paddingHorizontal: 8,
@@ -266,52 +267,53 @@ const styles = StyleSheet.create({
     marginTop: 8,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: '#F1F5F9',
   },
   routeSubText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
+    fontWeight: '500',
   },
   resultsCountText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   sortSection: {
     paddingHorizontal: 16,
-    paddingTop: 10,
+    paddingTop: 12,
   },
   sortSectionLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
     color: '#64748B',
     letterSpacing: 0.8,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   sortButtonsRow: {
     flexDirection: 'row',
-    gap: 6,
+    gap: 8,
   },
   sortBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#131D38',
-    paddingVertical: 7,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 9,
     borderRadius: 8,
     gap: 4,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#CBD5E1',
   },
   sortBtnActive: {
     backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    borderColor: '#0284C7',
   },
   sortBtnText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#475569',
   },
   sortBtnTextActive: {
     color: '#FFFFFF',
@@ -319,41 +321,48 @@ const styles = StyleSheet.create({
   sortExplainBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(56, 189, 248, 0.08)',
-    borderRadius: 6,
-    padding: 8,
-    marginVertical: 8,
+    backgroundColor: '#F0F9FF',
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 10,
     gap: 6,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
   },
   sortExplainText: {
     flex: 1,
-    fontSize: 10,
-    color: '#BAE6FD',
-    lineHeight: 14,
+    fontSize: 11,
+    color: '#0369A1',
+    lineHeight: 15,
+    fontWeight: '500',
   },
   errorNotice: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: '#FFFBEB',
     marginHorizontal: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
     gap: 6,
-    marginBottom: 6,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
   },
   errorNoticeText: {
-    fontSize: 10,
-    color: '#FDE68A',
+    fontSize: 11,
+    color: '#92400E',
+    fontWeight: '600',
   },
   loadingBox: {
-    paddingVertical: 30,
+    paddingVertical: 36,
     alignItems: 'center',
     gap: 8,
   },
   loadingText: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
+    fontWeight: '500',
   },
   faresList: {
     flex: 1,

@@ -93,7 +93,7 @@ export function AirportDetailModal({
             </View>
 
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <Ionicons name="close" size={20} color="#94A3B8" />
+              <Ionicons name="close" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
@@ -101,14 +101,14 @@ export function AirportDetailModal({
             {/* Identity & Classification Card */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="airplane-outline" size={16} color="#38BDF8" />
+                <Ionicons name="airplane-outline" size={16} color="#0284C7" />
                 <Text style={styles.sectionTitle}>Airport Classification & Registry</Text>
               </View>
 
               <View style={styles.metricsGrid}>
                 <View style={styles.metricBox}>
                   <Text style={styles.metricLabel}>IATA CODE</Text>
-                  <Text style={[styles.metricValue, { color: '#38BDF8' }]}>
+                  <Text style={[styles.metricValue, { color: '#0284C7' }]}>
                     {airport.iata || 'Unavailable'}
                   </Text>
                 </View>
@@ -139,7 +139,7 @@ export function AirportDetailModal({
             {/* Geographical Location Card */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="globe-outline" size={16} color="#38BDF8" />
+                <Ionicons name="globe-outline" size={16} color="#0284C7" />
                 <Text style={styles.sectionTitle}>Geographic & Regional Data</Text>
               </View>
 
@@ -179,13 +179,13 @@ export function AirportDetailModal({
             {/* Navigation & Radar Coordinates Card */}
             <View style={styles.sectionCard}>
               <View style={styles.sectionHeader}>
-                <Ionicons name="compass-outline" size={16} color="#38BDF8" />
+                <Ionicons name="compass-outline" size={16} color="#0284C7" />
                 <Text style={styles.sectionTitle}>Radar & Elevation Metrics</Text>
               </View>
 
               <View style={styles.infoRow}>
                 <Text style={styles.infoLabel}>Coordinates (GPS)</Text>
-                <Text style={[styles.infoValue, { color: '#38BDF8', fontFamily: 'monospace' }]}>
+                <Text style={[styles.infoValue, { color: '#0284C7', fontFamily: 'monospace' }]}>
                   {coordinatesDisplay}
                 </Text>
               </View>
@@ -205,7 +205,7 @@ export function AirportDetailModal({
 
             {/* Accuracy & Integrity Notice */}
             <View style={styles.noticeCard}>
-              <Ionicons name="shield-checkmark-outline" size={16} color="#10B981" style={{ marginTop: 2 }} />
+              <Ionicons name="shield-checkmark-outline" size={16} color="#059669" style={{ marginTop: 2 }} />
               <View style={{ flex: 1, marginLeft: 8 }}>
                 <Text style={styles.noticeTitle}>Authentic Aviation Telemetry</Text>
                 <Text style={styles.noticeBody}>
@@ -241,22 +241,27 @@ export function AirportDetailModal({
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
     justifyContent: 'flex-end',
   },
   sheetContainer: {
-    backgroundColor: '#0B132B',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '90%',
     borderTopWidth: 1,
-    borderTopColor: '#334155',
+    borderTopColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
   },
   dragHandle: {
     width: 36,
     height: 4,
     borderRadius: 2,
-    backgroundColor: '#334155',
+    backgroundColor: '#CBD5E1',
     alignSelf: 'center',
     marginTop: 8,
     marginBottom: 6,
@@ -268,7 +273,7 @@ const styles = StyleSheet.create({
     paddingTop: 8,
     paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#F1F5F9',
   },
   badgeRow: {
     flexDirection: 'row',
@@ -290,56 +295,56 @@ const styles = StyleSheet.create({
     letterSpacing: 0.5,
   },
   icaoPill: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: '#CBD5E1',
   },
   icaoPillText: {
-    color: '#94A3B8',
+    color: '#475569',
     fontWeight: '700',
     fontSize: 12,
   },
   sourcePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.12)',
+    backgroundColor: '#ECFDF5',
     paddingHorizontal: 7,
     paddingVertical: 3,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: '#A7F3D0',
   },
   pulseDot: {
     width: 5,
     height: 5,
     borderRadius: 2.5,
-    backgroundColor: '#10B981',
+    backgroundColor: '#059669',
     marginRight: 4,
   },
   sourceText: {
-    color: '#6EE7B7',
+    color: '#059669',
     fontSize: 9,
     fontWeight: '700',
     letterSpacing: 0.4,
   },
   airportTitle: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 18,
     fontWeight: '800',
     lineHeight: 24,
   },
   airportSubTitle: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 13,
     marginTop: 2,
     fontWeight: '500',
   },
   closeBtn: {
     padding: 6,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
     borderRadius: 20,
     marginLeft: 10,
   },
@@ -348,12 +353,17 @@ const styles = StyleSheet.create({
     paddingTop: 14,
   },
   sectionCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 2,
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -362,7 +372,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   sectionTitle: {
-    color: '#F1F5F9',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: '700',
     letterSpacing: 0.2,
@@ -375,11 +385,11 @@ const styles = StyleSheet.create({
   metricBox: {
     flex: 1,
     minWidth: '45%',
-    backgroundColor: '#131D38',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   metricLabel: {
     color: '#64748B',
@@ -389,7 +399,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   metricValue: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 14,
     fontWeight: '700',
   },
@@ -397,17 +407,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 8,
+    paddingVertical: 9,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#F1F5F9',
   },
   infoLabel: {
-    color: '#94A3B8',
+    color: '#64748B',
     fontSize: 12,
     fontWeight: '500',
   },
   infoValue: {
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 12,
     fontWeight: '600',
     maxWidth: '60%',
@@ -415,21 +425,21 @@ const styles = StyleSheet.create({
   },
   noticeCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(6, 78, 59, 0.2)',
+    backgroundColor: '#ECFDF5',
     borderRadius: 10,
     padding: 12,
     borderWidth: 1,
-    borderColor: 'rgba(16, 185, 129, 0.3)',
+    borderColor: '#A7F3D0',
     marginBottom: 14,
   },
   noticeTitle: {
-    color: '#6EE7B7',
+    color: '#065F46',
     fontSize: 12,
     fontWeight: '700',
     marginBottom: 2,
   },
   noticeBody: {
-    color: '#94A3B8',
+    color: '#047857',
     fontSize: 11,
     lineHeight: 16,
   },

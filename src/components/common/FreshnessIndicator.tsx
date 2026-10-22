@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import { DataFreshness, FreshnessStatus } from '@/types';
+import { Palette } from '@/constants/theme';
 
 interface Props {
   freshness: DataFreshness;
@@ -12,34 +13,38 @@ export function FreshnessIndicator({ freshness, compact = false }: Props) {
     switch (status) {
       case 'valid':
         return {
-          color: '#10B981', // Emerald green
-          bgColor: '#064E3B',
-          borderColor: '#059669',
+          color: Palette.success,
+          textColor: Palette.successText,
+          bgColor: Palette.successBg,
+          borderColor: '#A7F3D0',
           label: 'VALID / LIVE',
           desc: `Observed ${freshness.ageSeconds}s ago`,
         };
       case 'stale':
         return {
-          color: '#F59E0B', // Amber warning
-          bgColor: '#78350F',
-          borderColor: '#D97706',
+          color: Palette.warning,
+          textColor: Palette.warningText,
+          bgColor: Palette.warningBg,
+          borderColor: '#FDE68A',
           label: 'STALE DATA',
           desc: `Observed ${Math.round(freshness.ageSeconds / 60)}m ago (Lagging)`,
         };
       case 'missing':
         return {
-          color: '#9CA3AF', // Muted gray
-          bgColor: '#374151',
-          borderColor: '#6B7280',
+          color: Palette.textMuted,
+          textColor: Palette.textSecondary,
+          bgColor: Palette.surfaceSubtle,
+          borderColor: Palette.border,
           label: 'INCOMPLETE',
           desc: 'Some telemetry fields missing',
         };
       case 'unavailable':
       default:
         return {
-          color: '#EF4444', // Red
-          bgColor: '#7F1D1D',
-          borderColor: '#DC2626',
+          color: Palette.danger,
+          textColor: Palette.dangerText,
+          bgColor: Palette.dangerBg,
+          borderColor: '#FECACA',
           label: 'UNAVAILABLE',
           desc: 'No live telemetry link',
         };
@@ -52,7 +57,7 @@ export function FreshnessIndicator({ freshness, compact = false }: Props) {
     return (
       <View style={[styles.compactContainer, { backgroundColor: config.bgColor, borderColor: config.borderColor }]}>
         <View style={[styles.dot, { backgroundColor: config.color }]} />
-        <Text style={[styles.compactText, { color: config.color }]}>{config.label}</Text>
+        <Text style={[styles.compactText, { color: config.textColor }]}>{config.label}</Text>
       </View>
     );
   }
@@ -61,7 +66,7 @@ export function FreshnessIndicator({ freshness, compact = false }: Props) {
     <View style={[styles.card, { backgroundColor: config.bgColor, borderColor: config.borderColor }]}>
       <View style={styles.headerRow}>
         <View style={[styles.dot, { backgroundColor: config.color }]} />
-        <Text style={[styles.statusLabel, { color: config.color }]}>{config.label}</Text>
+        <Text style={[styles.statusLabel, { color: config.textColor }]}>{config.label}</Text>
         <Text style={styles.timeTag}>Age: {freshness.ageSeconds}s</Text>
       </View>
       <Text style={styles.descText}>{config.desc}</Text>
@@ -88,15 +93,15 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   dot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     marginRight: 5,
   },
   compactText: {
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: '700',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   card: {
     padding: 10,
@@ -111,34 +116,35 @@ const styles = StyleSheet.create({
   statusLabel: {
     fontSize: 12,
     fontWeight: '800',
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
   },
   timeTag: {
     marginLeft: 'auto',
     fontSize: 11,
-    color: '#D1D5DB',
+    color: Palette.textSecondary,
+    fontWeight: '500',
   },
   descText: {
     fontSize: 11,
-    color: '#F3F4F6',
-    marginTop: 3,
+    color: Palette.textSecondary,
+    marginTop: 4,
   },
   notesText: {
     fontSize: 11,
-    color: '#FDE68A',
+    color: Palette.warningText,
     marginTop: 4,
-    fontStyle: 'italic',
+    fontWeight: '500',
   },
   timesContainer: {
     marginTop: 6,
     paddingTop: 6,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.1)',
+    borderTopColor: 'rgba(0, 0, 0, 0.06)',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   metaText: {
     fontSize: 10,
-    color: '#9CA3AF',
+    color: Palette.textMuted,
   },
 });

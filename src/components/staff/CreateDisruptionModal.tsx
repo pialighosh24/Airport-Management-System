@@ -69,7 +69,7 @@ export function CreateDisruptionModal({ visible, onClose }: Props) {
               <Text style={styles.subtitle}>Log operational event & dispatch action plan</Text>
             </View>
             <TouchableOpacity style={styles.closeBtn} onPress={onClose}>
-              <Ionicons name="close" size={20} color="#94A3B8" />
+              <Ionicons name="close" size={20} color="#64748B" />
             </TouchableOpacity>
           </View>
 
@@ -83,7 +83,7 @@ export function CreateDisruptionModal({ visible, onClose }: Props) {
                   value={flightNumber}
                   onChangeText={setFlightNumber}
                   placeholder="e.g. DL402"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor="#94A3B8"
                   autoCapitalize="characters"
                 />
               </View>
@@ -95,7 +95,7 @@ export function CreateDisruptionModal({ visible, onClose }: Props) {
                   value={route}
                   onChangeText={setRoute}
                   placeholder="e.g. JFK -> CDG"
-                  placeholderTextColor="#64748B"
+                  placeholderTextColor="#94A3B8"
                 />
               </View>
             </View>
@@ -159,7 +159,7 @@ export function CreateDisruptionModal({ visible, onClose }: Props) {
                 onChangeText={setPaxCount}
                 keyboardType="numeric"
                 placeholder="Number of passengers"
-                placeholderTextColor="#64748B"
+                placeholderTextColor="#94A3B8"
               />
             </View>
 
@@ -173,7 +173,7 @@ export function CreateDisruptionModal({ visible, onClose }: Props) {
                 multiline
                 numberOfLines={3}
                 placeholder="Describe disruption cause..."
-                placeholderTextColor="#64748B"
+                placeholderTextColor="#94A3B8"
               />
             </View>
 
@@ -187,7 +187,7 @@ export function CreateDisruptionModal({ visible, onClose }: Props) {
                 multiline
                 numberOfLines={3}
                 placeholder="Mitigation, rebooking or turnaround action..."
-                placeholderTextColor="#64748B"
+                placeholderTextColor="#94A3B8"
               />
             </View>
           </ScrollView>
@@ -210,39 +210,45 @@ export function CreateDisruptionModal({ visible, onClose }: Props) {
 const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: 'rgba(15, 23, 42, 0.45)',
     justifyContent: 'flex-end',
   },
   modalCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: '92%',
     padding: 20,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 10,
+    elevation: 10,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingBottom: 12,
+    paddingBottom: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#1E293B',
+    borderBottomColor: '#F1F5F9',
   },
   title: {
     fontSize: 18,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   subtitle: {
-    fontSize: 11,
-    color: '#94A3B8',
+    fontSize: 12,
+    color: '#64748B',
     marginTop: 2,
+    fontWeight: '500',
   },
   closeBtn: {
-    padding: 4,
-    backgroundColor: '#1E293B',
+    padding: 6,
+    backgroundColor: '#F1F5F9',
     borderRadius: 16,
   },
   formContent: {
@@ -253,26 +259,26 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   field: {
-    marginBottom: 10,
+    marginBottom: 12,
   },
   label: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
-    marginBottom: 4,
+    color: '#475569',
+    marginBottom: 6,
   },
   input: {
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     paddingHorizontal: 12,
-    paddingVertical: 8,
-    color: '#F8FAFC',
+    paddingVertical: 10,
+    color: '#0F172A',
     fontSize: 13,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#CBD5E1',
   },
   textArea: {
-    minHeight: 64,
+    minHeight: 68,
     textAlignVertical: 'top',
   },
   selectorRow: {
@@ -282,21 +288,21 @@ const styles = StyleSheet.create({
   },
   selectorPill: {
     flex: 1,
-    backgroundColor: '#0A1329',
-    paddingVertical: 7,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
     borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#CBD5E1',
   },
   selectorPillActive: {
     backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    borderColor: '#0284C7',
   },
   selectorText: {
     fontSize: 11,
     fontWeight: '600',
-    color: '#94A3B8',
+    color: '#475569',
     textTransform: 'capitalize',
   },
   selectorTextActive: {
@@ -306,19 +312,21 @@ const styles = StyleSheet.create({
   actionsRow: {
     flexDirection: 'row',
     gap: 10,
-    paddingTop: 10,
+    paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#1E293B',
+    borderTopColor: '#F1F5F9',
   },
   cancelBtn: {
     flex: 1,
     paddingVertical: 12,
     borderRadius: 10,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   cancelBtnText: {
-    color: '#94A3B8',
+    color: '#475569',
     fontWeight: '700',
     fontSize: 13,
   },

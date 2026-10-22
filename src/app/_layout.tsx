@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import { FlightProvider } from '@/context/FlightContext';
+import { Palette } from '@/constants/theme';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -16,19 +17,24 @@ export default function RootLayout() {
       <Tabs
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: '#38BDF8',
-          tabBarInactiveTintColor: '#64748B',
+          tabBarActiveTintColor: Palette.primary,
+          tabBarInactiveTintColor: Palette.textMuted,
           tabBarStyle: {
-            backgroundColor: '#0B132B',
-            borderTopColor: '#1C2541',
+            backgroundColor: Palette.surface,
+            borderTopColor: Palette.border,
             borderTopWidth: 1,
-            height: 60,
+            height: 62,
             paddingBottom: 8,
             paddingTop: 6,
+            elevation: 3,
+            shadowColor: '#000000',
+            shadowOffset: { width: 0, height: -2 },
+            shadowOpacity: 0.04,
+            shadowRadius: 4,
           },
           tabBarLabelStyle: {
-            fontSize: 10,
-            fontWeight: '700',
+            fontSize: 11,
+            fontWeight: '600',
           },
         }}
       >
@@ -100,7 +106,7 @@ export default function RootLayout() {
         <Tabs.Screen
           name="explore"
           options={{
-            href: null, // Hide template explore screen
+            href: null,
           }}
         />
       </Tabs>

@@ -14,14 +14,14 @@ export function DisruptionCard({ item }: Props) {
   const getSeverityStyle = (severity: DisruptionCase['severity']) => {
     switch (severity) {
       case 'critical':
-        return { bg: '#7F1D1D', border: '#DC2626', text: '#FCA5A5', label: 'CRITICAL' };
+        return { bg: '#FEE2E2', border: '#DC2626', text: '#991B1B', label: 'CRITICAL' };
       case 'high':
-        return { bg: '#7C2D12', border: '#EA580C', text: '#FDBA74', label: 'HIGH' };
+        return { bg: '#FFEDD5', border: '#EA580C', text: '#9A3412', label: 'HIGH' };
       case 'medium':
-        return { bg: '#78350F', border: '#D97706', text: '#FDE68A', label: 'MEDIUM' };
+        return { bg: '#FEF3C7', border: '#D97706', text: '#92400E', label: 'MEDIUM' };
       case 'low':
       default:
-        return { bg: '#1E293B', border: '#475569', text: '#94A3B8', label: 'LOW' };
+        return { bg: '#F1F5F9', border: '#CBD5E1', text: '#475569', label: 'LOW' };
     }
   };
 
@@ -47,7 +47,7 @@ export function DisruptionCard({ item }: Props) {
       {/* Top Header */}
       <View style={styles.headerRow}>
         <View style={styles.typeBlock}>
-          <Ionicons name={getIncidentIcon(item.incidentType)} size={16} color="#38BDF8" />
+          <Ionicons name={getIncidentIcon(item.incidentType)} size={16} color="#0284C7" />
           <Text style={styles.caseNumber}>{item.caseNumber}</Text>
           <Text style={styles.flightCode}>{item.flightNumber}</Text>
         </View>
@@ -61,7 +61,7 @@ export function DisruptionCard({ item }: Props) {
       <View style={styles.routeRow}>
         <Text style={styles.routeText}>Route: {item.route}</Text>
         <Text style={styles.paxText}>
-          👥 <Text style={{ fontWeight: '700', color: '#F8FAFC' }}>{item.impactedPassengers}</Text> pax affected
+          👥 <Text style={{ fontWeight: '700', color: '#0F172A' }}>{item.impactedPassengers}</Text> pax affected
         </Text>
       </View>
 
@@ -90,7 +90,7 @@ export function DisruptionCard({ item }: Props) {
             <Text
               style={[
                 styles.statusBtnText,
-                item.status === 'open' && { color: '#EF4444', fontWeight: '800' },
+                item.status === 'open' && { color: '#DC2626', fontWeight: '800' },
               ]}
             >
               Open
@@ -107,7 +107,7 @@ export function DisruptionCard({ item }: Props) {
             <Text
               style={[
                 styles.statusBtnText,
-                item.status === 'investigating' && { color: '#F59E0B', fontWeight: '800' },
+                item.status === 'investigating' && { color: '#D97706', fontWeight: '800' },
               ]}
             >
               Investigating
@@ -124,7 +124,7 @@ export function DisruptionCard({ item }: Props) {
             <Text
               style={[
                 styles.statusBtnText,
-                item.status === 'resolved' && { color: '#10B981', fontWeight: '800' },
+                item.status === 'resolved' && { color: '#059669', fontWeight: '800' },
               ]}
             >
               Resolved
@@ -142,11 +142,16 @@ export function DisruptionCard({ item }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 14,
     marginBottom: 14,
     borderWidth: 1.5,
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   headerRow: {
     flexDirection: 'row',
@@ -162,14 +167,14 @@ const styles = StyleSheet.create({
   caseNumber: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   flightCode: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#38BDF8',
-    backgroundColor: '#1E293B',
-    paddingHorizontal: 6,
+    color: '#0284C7',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 4,
   },
@@ -191,22 +196,24 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     paddingBottom: 6,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.08)',
+    borderBottomColor: '#F1F5F9',
   },
   routeText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#64748B',
   },
   paxText: {
     fontSize: 12,
-    color: '#CBD5E1',
+    color: '#334155',
   },
   summaryBlock: {
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   summaryTitle: {
     fontSize: 10,
@@ -217,28 +224,31 @@ const styles = StyleSheet.create({
   },
   summaryBody: {
     fontSize: 12,
-    color: '#E2E8F0',
+    color: '#1E293B',
     lineHeight: 18,
   },
   actionPlanBlock: {
-    backgroundColor: 'rgba(56, 189, 248, 0.05)',
+    backgroundColor: '#F0F9FF',
     borderRadius: 8,
     padding: 10,
     marginBottom: 10,
     borderLeftWidth: 3,
-    borderLeftColor: '#38BDF8',
+    borderLeftColor: '#0284C7',
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
   },
   actionPlanTitle: {
     fontSize: 10,
     fontWeight: '800',
-    color: '#38BDF8',
+    color: '#0284C7',
     letterSpacing: 0.5,
     marginBottom: 2,
   },
   actionPlanBody: {
     fontSize: 12,
-    color: '#E2E8F0',
+    color: '#0F172A',
     lineHeight: 18,
+    fontWeight: '500',
   },
   footerRow: {
     flexDirection: 'row',
@@ -246,30 +256,35 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: '#F1F5F9',
   },
   statusButtons: {
     flexDirection: 'row',
     gap: 6,
   },
   statusBtn: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
     borderRadius: 6,
-    backgroundColor: '#1E293B',
+    backgroundColor: '#F1F5F9',
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   statusBtnActiveOpen: {
-    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    backgroundColor: '#FEE2E2',
+    borderColor: '#FECACA',
   },
   statusBtnActiveInvestigating: {
-    backgroundColor: 'rgba(245, 158, 11, 0.2)',
+    backgroundColor: '#FEF3C7',
+    borderColor: '#FDE68A',
   },
   statusBtnActiveResolved: {
-    backgroundColor: 'rgba(16, 185, 129, 0.2)',
+    backgroundColor: '#ECFDF5',
+    borderColor: '#A7F3D0',
   },
   statusBtnText: {
     fontSize: 10,
-    color: '#94A3B8',
+    color: '#64748B',
     fontWeight: '600',
   },
   reportedTime: {

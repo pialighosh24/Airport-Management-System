@@ -62,7 +62,7 @@ export default function AlertsScreen() {
           <View style={styles.emailCard}>
             <View style={styles.cardHeaderRow}>
               <View style={styles.iconTitleRow}>
-                <Ionicons name="mail-unread-outline" size={18} color="#38BDF8" />
+                <Ionicons name="mail-unread-outline" size={18} color="#0284C7" />
                 <Text style={styles.cardTitle}>Email Notification Channel</Text>
               </View>
               <View style={styles.activePill}>
@@ -117,8 +117,8 @@ export default function AlertsScreen() {
               <Switch
                 value={alertOnGateChange}
                 onValueChange={setAlertOnGateChange}
-                trackColor={{ false: '#1E293B', true: '#0284C7' }}
-                thumbColor={alertOnGateChange ? '#38BDF8' : '#64748B'}
+                trackColor={{ false: '#CBD5E1', true: '#0284C7' }}
+                thumbColor={alertOnGateChange ? '#FFFFFF' : '#F1F5F9'}
               />
             </View>
 
@@ -132,8 +132,8 @@ export default function AlertsScreen() {
               <Switch
                 value={alertOnBoarding}
                 onValueChange={setAlertOnBoarding}
-                trackColor={{ false: '#1E293B', true: '#0284C7' }}
-                thumbColor={alertOnBoarding ? '#38BDF8' : '#64748B'}
+                trackColor={{ false: '#CBD5E1', true: '#0284C7' }}
+                thumbColor={alertOnBoarding ? '#FFFFFF' : '#F1F5F9'}
               />
             </View>
 
@@ -196,7 +196,7 @@ export default function AlertsScreen() {
                       style={styles.testAlertPill}
                       onPress={() => simulateTriggerAlert(ac.flightNumber, 'delay')}
                     >
-                      <Ionicons name="flash" size={12} color="#FBBF24" />
+                      <Ionicons name="flash" size={12} color="#D97706" />
                       <Text style={styles.testAlertPillText}>Simulate Delay</Text>
                     </TouchableOpacity>
 
@@ -204,14 +204,14 @@ export default function AlertsScreen() {
                       style={styles.removeWatchBtn}
                       onPress={() => toggleSaveFlight(ac.flightNumber)}
                     >
-                      <Ionicons name="trash-outline" size={16} color="#EF4444" />
+                      <Ionicons name="trash-outline" size={16} color="#DC2626" />
                     </TouchableOpacity>
                   </View>
                 </View>
               ))
             ) : (
               <View style={styles.emptyWatchlist}>
-                <Ionicons name="bookmark-outline" size={32} color="#334155" />
+                <Ionicons name="bookmark-outline" size={32} color="#CBD5E1" />
                 <Text style={styles.emptyWatchlistText}>No flights saved to your watchlist yet</Text>
                 <Text style={styles.emptyWatchlistSub}>
                   Tap the bookmark icon on any flight in Radar or Airport Timetables to track it here
@@ -236,7 +236,7 @@ export default function AlertsScreen() {
                           : 'megaphone-outline'
                       }
                       size={16}
-                      color="#38BDF8"
+                      color="#0284C7"
                     />
                   </View>
 
@@ -270,11 +270,11 @@ export default function AlertsScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B132B',
+    backgroundColor: '#F8FAFC',
   },
   container: {
     flex: 1,
-    backgroundColor: '#070D1E',
+    backgroundColor: '#F8FAFC',
   },
   scrollContent: {
     flex: 1,
@@ -282,12 +282,17 @@ const styles = StyleSheet.create({
     paddingTop: 10,
   },
   emailCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
   },
   cardHeaderRow: {
     flexDirection: 'row',
@@ -303,31 +308,33 @@ const styles = StyleSheet.create({
   cardTitle: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   activePill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(16, 185, 129, 0.15)',
+    backgroundColor: '#ECFDF5',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 10,
     gap: 5,
+    borderWidth: 1,
+    borderColor: '#A7F3D0',
   },
   activeDot: {
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: '#10B981',
+    backgroundColor: '#059669',
   },
   activePillText: {
     fontSize: 9,
     fontWeight: '800',
-    color: '#10B981',
+    color: '#059669',
   },
   emailExplainer: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
     marginBottom: 10,
     lineHeight: 16,
   },
@@ -335,20 +342,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   emailDisplayText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   editEmailBtn: {
-    backgroundColor: '#1E293B',
+    backgroundColor: '#E0F2FE',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 6,
@@ -356,7 +363,7 @@ const styles = StyleSheet.create({
   editEmailBtnText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#CBD5E1',
+    color: '#0284C7',
   },
   emailEditRow: {
     flexDirection: 'row',
@@ -364,14 +371,14 @@ const styles = StyleSheet.create({
   },
   emailInput: {
     flex: 1,
-    backgroundColor: '#0A1329',
+    backgroundColor: '#FFFFFF',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    color: '#F8FAFC',
+    color: '#0F172A',
     fontSize: 13,
     borderWidth: 1,
-    borderColor: '#38BDF8',
+    borderColor: '#0284C7',
   },
   saveEmailBtn: {
     backgroundColor: '#0284C7',
@@ -385,12 +392,17 @@ const styles = StyleSheet.create({
     fontSize: 13,
   },
   settingsCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
   },
   sectionHeader: {
     fontSize: 10,
@@ -405,16 +417,16 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 10,
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255, 255, 255, 0.06)',
+    borderBottomColor: '#F1F5F9',
   },
   settingLabel: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   settingSub: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 2,
   },
   thresholdPills: {
@@ -422,43 +434,48 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   thresholdPill: {
-    backgroundColor: '#131D38',
+    backgroundColor: '#FFFFFF',
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#CBD5E1',
   },
   thresholdPillActive: {
     backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    borderColor: '#0284C7',
   },
   thresholdPillText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#475569',
     fontWeight: '700',
   },
   thresholdPillTextActive: {
     color: '#FFFFFF',
   },
   watchlistCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 14,
     marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
   },
   watchlistItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   watchItemInfo: {
     flex: 1,
@@ -466,16 +483,16 @@ const styles = StyleSheet.create({
   watchFlightNumber: {
     fontSize: 15,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   watchRoute: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
     marginTop: 2,
   },
   watchStatus: {
     fontSize: 10,
-    color: '#38BDF8',
+    color: '#0284C7',
     marginTop: 2,
     fontWeight: '600',
   },
@@ -488,18 +505,18 @@ const styles = StyleSheet.create({
   testAlertPill: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: '#FEF3C7',
     paddingHorizontal: 8,
     paddingVertical: 5,
     borderRadius: 6,
     gap: 4,
     borderWidth: 1,
-    borderColor: 'rgba(245, 158, 11, 0.3)',
+    borderColor: '#FDE68A',
   },
   testAlertPillText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#FBBF24',
+    color: '#B45309',
   },
   removeWatchBtn: {
     padding: 6,
@@ -511,7 +528,7 @@ const styles = StyleSheet.create({
   emptyWatchlistText: {
     fontSize: 13,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#475569',
     marginTop: 8,
   },
   emptyWatchlistSub: {
@@ -522,27 +539,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   timelineCard: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
     padding: 14,
     marginBottom: 30,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 3,
+    elevation: 2,
   },
   notifItem: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 10,
     marginBottom: 8,
     gap: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   notifIconCircle: {
     width: 28,
     height: 28,
     borderRadius: 14,
-    backgroundColor: 'rgba(56, 189, 248, 0.1)',
+    backgroundColor: '#E0F2FE',
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 2,
@@ -558,11 +582,11 @@ const styles = StyleSheet.create({
   notifTitle: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   notifMessage: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#475569',
     marginTop: 2,
     lineHeight: 16,
   },

@@ -52,9 +52,9 @@ export function FareCard({ fare, onViewBreakdown }: Props) {
           <Text style={styles.durationText}>{formatDuration(fare.durationMinutes)}</Text>
           <View style={styles.flightLine}>
             <View style={styles.flightLineBar} />
-            <Ionicons name="airplane" size={14} color="#38BDF8" style={styles.planeIcon} />
+            <Ionicons name="airplane" size={14} color="#0284C7" style={styles.planeIcon} />
           </View>
-          <Text style={[styles.stopsText, fare.stopsCount === 0 && { color: '#10B981' }]}>
+          <Text style={[styles.stopsText, fare.stopsCount === 0 && { color: '#059669' }]}>
             {fare.stopsCount === 0 ? 'Non-stop' : `${fare.stopsCount} stop`}
           </Text>
         </View>
@@ -75,7 +75,7 @@ export function FareCard({ fare, onViewBreakdown }: Props) {
             <Ionicons
               name={fare.baggage.personalItemIncluded ? 'checkmark-circle' : 'close-circle'}
               size={14}
-              color={fare.baggage.personalItemIncluded ? '#10B981' : '#EF4444'}
+              color={fare.baggage.personalItemIncluded ? '#059669' : '#DC2626'}
             />
             <Text style={styles.baggageLabel}>Personal Item: Free</Text>
           </View>
@@ -85,7 +85,7 @@ export function FareCard({ fare, onViewBreakdown }: Props) {
             <Ionicons
               name={fare.baggage.cabinBagIncluded ? 'checkmark-circle' : 'close-circle'}
               size={14}
-              color={fare.baggage.cabinBagIncluded ? '#10B981' : '#F59E0B'}
+              color={fare.baggage.cabinBagIncluded ? '#059669' : '#D97706'}
             />
             <Text style={styles.baggageLabel}>
               {fare.baggage.cabinBagIncluded
@@ -99,12 +99,12 @@ export function FareCard({ fare, onViewBreakdown }: Props) {
             <Ionicons
               name={fare.baggage.checkedBagIncluded ? 'checkmark-circle' : 'alert-circle'}
               size={14}
-              color={fare.baggage.checkedBagIncluded ? '#10B981' : '#F59E0B'}
+              color={fare.baggage.checkedBagIncluded ? '#059669' : '#D97706'}
             />
             <Text
               style={[
                 styles.baggageLabel,
-                !fare.baggage.checkedBagIncluded && { color: '#F59E0B' },
+                !fare.baggage.checkedBagIncluded && { color: '#D97706', fontWeight: '600' },
               ]}
             >
               {fare.baggage.checkedBagIncluded
@@ -119,7 +119,7 @@ export function FareCard({ fare, onViewBreakdown }: Props) {
       <View style={styles.priceFooterRow}>
         <View>
           <View style={styles.guaranteeRow}>
-            <Ionicons name="shield-checkmark" size={12} color="#10B981" />
+            <Ionicons name="shield-checkmark" size={13} color="#059669" />
             <Text style={styles.guaranteeText}>Zero Hidden Fees Guarantee</Text>
           </View>
           <Text style={styles.seatsLeftText}>Only {fare.availableSeats} seats remaining</Text>
@@ -132,7 +132,7 @@ export function FareCard({ fare, onViewBreakdown }: Props) {
             onPress={() => onViewBreakdown(fare)}
           >
             <Text style={styles.breakdownLinkText}>View Breakdown</Text>
-            <Ionicons name="chevron-forward" size={12} color="#38BDF8" />
+            <Ionicons name="chevron-forward" size={12} color="#0284C7" />
           </TouchableOpacity>
         </View>
       </View>
@@ -142,18 +142,23 @@ export function FareCard({ fare, onViewBreakdown }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#0F1A36',
+    backgroundColor: '#FFFFFF',
     borderRadius: 12,
-    padding: 14,
+    padding: 16,
     marginBottom: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 12,
   },
   airlineBadge: {
     flexDirection: 'row',
@@ -161,20 +166,21 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   airlineText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: '700',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   flightNumberText: {
-    fontSize: 12,
-    color: '#94A3B8',
-    backgroundColor: '#1E293B',
-    paddingHorizontal: 6,
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+    backgroundColor: '#F1F5F9',
+    paddingHorizontal: 7,
     paddingVertical: 2,
     borderRadius: 4,
   },
   classBadge: {
-    backgroundColor: '#1E3A8A',
+    backgroundColor: '#E0F2FE',
     paddingHorizontal: 8,
     paddingVertical: 3,
     borderRadius: 6,
@@ -182,29 +188,32 @@ const styles = StyleSheet.create({
   classText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#38BDF8',
+    color: '#0284C7',
   },
   itineraryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#0A1329',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 12,
-    marginBottom: 10,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   timeBlock: {
-    minWidth: 60,
+    minWidth: 64,
   },
   clockText: {
     fontSize: 17,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
   },
   iataText: {
     fontSize: 12,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#64748B',
+    marginTop: 2,
   },
   flightDurationBlock: {
     flex: 1,
@@ -213,7 +222,7 @@ const styles = StyleSheet.create({
   },
   durationText: {
     fontSize: 11,
-    color: '#CBD5E1',
+    color: '#475569',
     fontWeight: '600',
   },
   flightLine: {
@@ -225,8 +234,8 @@ const styles = StyleSheet.create({
   },
   flightLineBar: {
     width: '100%',
-    height: 1,
-    backgroundColor: '#334155',
+    height: 1.5,
+    backgroundColor: '#CBD5E1',
   },
   planeIcon: {
     position: 'absolute',
@@ -234,15 +243,15 @@ const styles = StyleSheet.create({
   stopsText: {
     fontSize: 10,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#64748B',
   },
   baggageSection: {
-    backgroundColor: '#091024',
+    backgroundColor: '#F8FAFC',
     borderRadius: 8,
     padding: 10,
-    marginBottom: 10,
+    marginBottom: 12,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
   },
   baggageHeader: {
     fontSize: 9,
@@ -252,7 +261,7 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   baggageItemsRow: {
-    gap: 4,
+    gap: 5,
   },
   baggageItem: {
     flexDirection: 'row',
@@ -261,15 +270,16 @@ const styles = StyleSheet.create({
   },
   baggageLabel: {
     fontSize: 11,
-    color: '#E2E8F0',
+    color: '#334155',
+    fontWeight: '500',
   },
   priceFooterRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 8,
+    paddingTop: 10,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.08)',
+    borderTopColor: '#F1F5F9',
   },
   guaranteeRow: {
     flexDirection: 'row',
@@ -278,11 +288,11 @@ const styles = StyleSheet.create({
   },
   guaranteeText: {
     fontSize: 11,
-    color: '#10B981',
-    fontWeight: '600',
+    color: '#059669',
+    fontWeight: '700',
   },
   seatsLeftText: {
-    fontSize: 10,
+    fontSize: 11,
     color: '#64748B',
     marginTop: 2,
   },
@@ -290,9 +300,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
   },
   totalPriceText: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '900',
-    color: '#38BDF8',
+    color: '#0F172A',
   },
   breakdownLink: {
     flexDirection: 'row',
@@ -302,7 +312,7 @@ const styles = StyleSheet.create({
   },
   breakdownLinkText: {
     fontSize: 11,
-    color: '#38BDF8',
-    fontWeight: '600',
+    color: '#0284C7',
+    fontWeight: '700',
   },
 });

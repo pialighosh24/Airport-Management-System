@@ -246,5 +246,108 @@ export const apiService = {
     const queryString = params.toString() ? `?${params.toString()}` : '';
     return fetchWithTimeout<ApiResponse<FlightFare[]>>(`/api/fares${queryString}`);
   },
+
+  /**
+   * Staff PIN Login: POST /api/auth/staff-login
+   */
+  async staffLogin(pin: string): Promise<ApiResponse<{ token: string; user: { id: string; name: string; role: string; email: string } }>> {
+    return fetchWithTimeout<ApiResponse<{ token: string; user: { id: string; name: string; role: string; email: string } }>>('/api/auth/staff-login', {
+      method: 'POST',
+      body: JSON.stringify({ pin }),
+    });
+  },
+
+  /**
+   * User Login: POST /api/auth/login
+   */
+  async login(email: string, password: string): Promise<ApiResponse<{ token: string; user: { id: string; name: string; role: string; email: string } }>> {
+    return fetchWithTimeout<ApiResponse<{ token: string; user: { id: string; name: string; role: string; email: string } }>>('/api/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+  },
+
+  /**
+   * User Registration: POST /api/auth/register
+   */
+  async register(data: { name: string; email: string; password: string; role?: string }): Promise<ApiResponse<{ token: string; user: { id: string; name: string; role: string; email: string } }>> {
+    return fetchWithTimeout<ApiResponse<{ token: string; user: { id: string; name: string; role: string; email: string } }>>('/api/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  /**
+   * Fetch Disruption Cases: GET /api/disruptions
+   */
+  async getDisruptions(filters?: { status?: string; severity?: string }): Promise<ApiResponse<any[]>> {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.severity) params.append('severity', filters.severity);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchWithTimeout<ApiResponse<any[]>>(`/api/disruptions${qs}`);
+  },
+
+  /**
+   * Create Disruption Case: POST /api/disruptions
+   */
+  async createDisruption(disruptionData: any, token?: string): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>('/api/disruptions', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify(disruptionData),
+    });
+  },
+
+  /**
+   * Update Disruption Status: PATCH /api/disruptions/:id
+   */
+  async updateDisruption(id: string, updates: any, token?: string): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>(`/api/disruptions/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify(updates),
+    });
+  },
+
+  /**
+   * Fetch Alerts & Notifications: GET /api/alerts
+   */
+  async getAlerts(token?: string): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>('/api/alerts', {
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+
+  /**
+   * Save Flight to Watchlist: POST /api/alerts/watchlist
+   */
+  async addToWatchlist(flightNumber: string, token?: string): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>('/api/alerts/watchlist', {
+      method: 'POST',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify({ flightNumber }),
+    });
+  },
+
+  /**
+   * Remove Flight from Watchlist: DELETE /api/alerts/watchlist/:flightNumber
+   */
+  async removeFromWatchlist(flightNumber: string, token?: string): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>(`/api/alerts/watchlist/${encodeURIComponent(flightNumber)}`, {
+      method: 'DELETE',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+  },
+
+  /**
+   * Trigger Simulated Alert: POST /api/alerts/simulate
+   */
+  async triggerSimulatedAlert(payload: { flightNumber: string; type: string; title?: string; message?: string }): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>('/api/alerts/simulate', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    });
+  },
 };
 
