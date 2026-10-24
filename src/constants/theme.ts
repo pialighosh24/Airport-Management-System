@@ -111,5 +111,22 @@ export const Spacing = {
   six: 64,
 } as const;
 
+export const Radii = {
+  none: 0,
+  sm: 4,
+  md: 8,
+  lg: 12,
+  xl: 16,
+  full: 999,
+} as const;
+
+export const Elevation = {
+  flat: 0,
+  low: 2,
+  card: 2,
+  raised: 6,
+  overlay: 12,
+} as const;
+
 export const BottomTabInset = Platform.select({ ios: 50, android: 80 }) ?? 0;
 export const MaxContentWidth = 800;

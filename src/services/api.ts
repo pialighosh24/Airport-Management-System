@@ -12,7 +12,7 @@
 
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail } from '@/types';
+import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail, WeatherSummaryResponse, CurrencyResponse, WeatherCurrentConditions, WeatherForecast } from '@/types';
 
 // Detect the best default backend URL based on platform and environment
 export function getDefaultBaseUrl(): string {
@@ -40,9 +40,6 @@ export function getDefaultBaseUrl(): string {
   return 'http://localhost:5000';
 }
 
-// Current active base URL (mutable so user can configure in settings/debug if needed)
-let activeBaseUrl = getDefaultBaseUrl();
-
 export function getApiBaseUrl(): string {
   return activeBaseUrl;
 }
@@ -50,6 +47,9 @@ export function getApiBaseUrl(): string {
 export function setApiBaseUrl(newUrl: string): void {
   activeBaseUrl = newUrl.replace(/\/+$/, ''); // Remove trailing slashes
 }
+
+// Current active base URL (mutable so user can configure in settings/debug if needed)
+let activeBaseUrl = getDefaultBaseUrl();
 
 // Response envelope types matching the Express backend
 export interface ApiResponse<T> {
@@ -97,6 +97,13 @@ export interface AirportScheduleResponse {
   arrivals: AirportScheduleItem[];
 }
 
+export interface ExternalApiStatus {
+  source: string;
+  providerName: string;
+  status: string;
+  authConfigured: boolean;
+}
+
 export interface HealthCheckResponse {
   success: boolean;
   service: string;
@@ -113,7 +120,15 @@ export interface HealthCheckResponse {
     mode: string;
     message: string;
   };
+  externalApis?: {
+    openSky?: ExternalApiStatus;
+    openMeteo?: ExternalApiStatus;
+    openErApi?: ExternalApiStatus;
+  };
 }
+
+// Weather & currency responses reuse canonical response shapes from @/types
+// (WeatherSummaryResponse, CurrencyResponse, WeatherCurrentConditions, WeatherForecast, CurrencyRates)
 
 // Core HTTP fetch helper with timeout and friendly error formatting
 async function fetchWithTimeout<T>(path: string, options: RequestInit = {}, timeoutMs = 8000): Promise<T> {
@@ -165,6 +180,21 @@ async function fetchWithTimeout<T>(path: string, options: RequestInit = {}, time
   }
 }
 
+// Response caches with TTL (weather + currency refresh slowly; keep client lean)
+const WEATHER_CACHE_TTL_MS = 5 * 60 * 1000;
+const CURRENCY_CACHE_TTL_MS = 5 * 60 * 1000;
+
+const weatherResponseCache = new Map<string, { payload: WeatherSummaryResponse; cachedAt: number }>();
+const currencyResponseCache = new Map<string, { payload: CurrencyResponse; cachedAt: number }>();
+
+function buildWeatherCacheKey(latitude: number, longitude: number, forecastDays: number, refresh: boolean | undefined): string {
+  return `${latitude.toFixed(3)},${longitude.toFixed(3)}::${forecastDays}::${refresh ? 'refresh' : 'default'}`;
+}
+
+function buildCurrencyCacheKey(base: string | undefined, symbols: string[] | undefined): string {
+  return `${base ?? 'USD'}::${(symbols ?? ['USD', 'INR']).join(',')}`;
+}
+
 /**
  * Reusable API Service Methods
  */
@@ -174,6 +204,53 @@ export const apiService = {
    */
   async getHealth(): Promise<HealthCheckResponse> {
     return fetchWithTimeout<HealthCheckResponse>('/api/health');
+  },
+
+  /**
+   * Current Weather + Forecast (Open-Meteo): GET /api/weather?latitude=&longitude=&forecastDays=&refresh=
+   */
+  async getWeather(params: { latitude: number; longitude: number; forecastDays?: number; refresh?: boolean }): Promise<WeatherSummaryResponse> {
+    const forecastDays = params.forecastDays && params.forecastDays >= 1 && params.forecastDays <= 7 ? Math.floor(params.forecastDays) : 2;
+    const cacheKey = buildWeatherCacheKey(params.latitude, params.longitude, forecastDays, params.refresh);
+    const now = Date.now();
+
+    const cached = weatherResponseCache.get(cacheKey);
+    if (!params.refresh && cached && now - cached.cachedAt < WEATHER_CACHE_TTL_MS) {
+      return { ...cached.payload, fromCache: true, cacheAgeSeconds: Math.max(0, Math.round((now - cached.cachedAt) / 1000)) };
+    }
+
+    const paramsString = new URLSearchParams();
+    paramsString.append('latitude', String(params.latitude));
+    paramsString.append('longitude', String(params.longitude));
+    paramsString.append('forecastDays', String(forecastDays));
+    if (params.refresh) paramsString.append('refresh', 'true');
+
+    const response = await fetchWithTimeout<WeatherSummaryResponse>(`/api/weather?${paramsString.toString()}`);
+    weatherResponseCache.set(cacheKey, { payload: response, cachedAt: Date.now() });
+    return response;
+  },
+
+  /**
+   * Currency Exchange Rates (Open Exchange Rate API): GET /api/currency?base=&symbols=
+   */
+  async getCurrency(params?: { base?: string; symbols?: string[] }): Promise<CurrencyResponse> {
+    const base = params?.base || 'USD';
+    const symbols = params?.symbols?.length ? params.symbols : ['USD', 'INR'];
+    const cacheKey = buildCurrencyCacheKey(base, symbols);
+    const now = Date.now();
+
+    const cached = currencyResponseCache.get(cacheKey);
+    if (cached && now - cached.cachedAt < CURRENCY_CACHE_TTL_MS) {
+      return { ...cached.payload, fromCache: true };
+    }
+
+    const paramsString = new URLSearchParams();
+    paramsString.append('base', base);
+    symbols.forEach((s) => paramsString.append('symbols', s));
+
+    const response = await fetchWithTimeout<CurrencyResponse>(`/api/currency?${paramsString.toString()}`);
+    currencyResponseCache.set(cacheKey, { payload: response, cachedAt: Date.now() });
+    return response;
   },
 
   /**

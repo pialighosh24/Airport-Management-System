@@ -1,328 +1,257 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   SafeAreaView,
-  ActivityIndicator,
-  TouchableOpacity,
-  TextInput,
   ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  RefreshControl,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Header } from '@/components/common/Header';
-import { AircraftRadarView } from '@/components/map/AircraftRadarView';
-import { FlightDetailModal } from '@/components/map/FlightDetailModal';
+import { StatCard } from '@/components/ui/StatCard';
+import { Badge } from '@/components/ui/Badge';
 import { useFlight } from '@/context/FlightContext';
-import { AircraftTelemetry } from '@/types';
+import { apiService } from '@/services/api';
+import { buildDisruptionBriefing } from '@/utils/disruptionBriefing';
+import { WeatherSummaryResponse, CurrencyResponse } from '@/types';
+import { Palette } from '@/constants/theme';
 
-export default function RadarMapScreen() {
+export default function CommandDashboard() {
   const {
     aircraftList,
-    selectedAircraft,
-    setSelectedAircraft,
     isLoadingFlights,
     flightError,
     isBackendConnected,
     fetchFlights,
-    serverUrl,
-    updateServerUrl,
     radarMode,
-    setRadarMode,
-    airspacePreset,
-    setAirspacePreset,
-    liveMetadata,
+    disruptionCases,
+    notifications,
   } = useFlight();
 
-  const [modalVisible, setModalVisible] = useState(false);
-  const [showServerConfig, setShowServerConfig] = useState(false);
-  const [customUrlInput, setCustomUrlInput] = useState(serverUrl);
+  const [weather, setWeather] = useState<WeatherSummaryResponse | null>(null);
+  const [weatherLoading, setWeatherLoading] = useState(true);
+  const [weatherError, setWeatherError] = useState<string | null>(null);
 
-  const handleSelectAircraft = (aircraft: AircraftTelemetry | null) => {
-    setSelectedAircraft(aircraft);
-  };
+  const [currency, setCurrency] = useState<CurrencyResponse | null>(null);
+  const [currencyLoading, setCurrencyLoading] = useState(true);
+  const [currencyError, setCurrencyError] = useState<string | null>(null);
 
-  const handleOpenDetailModal = (aircraft: AircraftTelemetry) => {
-    setSelectedAircraft(aircraft);
-    setModalVisible(true);
-  };
+  const [refreshing, setRefreshing] = useState(false);
 
-  const handleCloseModal = () => {
-    setModalVisible(false);
-  };
-
-  const handleSaveCustomUrl = () => {
-    if (customUrlInput.trim().length > 0) {
-      updateServerUrl(customUrlInput.trim());
-      setShowServerConfig(false);
+  const loadWeather = useCallback(async () => {
+    setWeatherLoading(true);
+    setWeatherError(null);
+    try {
+      const response = await apiService.getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 });
+      setWeather(response);
+    } catch (err: unknown) {
+      setWeatherError(err instanceof Error ? err.message : 'Weather service unavailable.');
+    } finally {
+      setWeatherLoading(false);
     }
-  };
+  }, []);
+
+  const loadCurrency = useCallback(async () => {
+    setCurrencyLoading(true);
+    setCurrencyError(null);
+    try {
+      const response = await apiService.getCurrency({ base: 'USD', symbols: ['USD', 'INR'] });
+      setCurrency(response);
+    } catch (err: unknown) {
+      setCurrencyError(err instanceof Error ? err.message : 'Currency service unavailable.');
+    } finally {
+      setCurrencyLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadWeather();
+    loadCurrency();
+  }, [loadWeather, loadCurrency]);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await Promise.all([loadWeather(), loadCurrency()]);
+    await fetchFlights();
+    setRefreshing(false);
+  }, [loadWeather, loadCurrency, fetchFlights]);
+
+  const briefing = buildDisruptionBriefing(disruptionCases);
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const inFlightCount = aircraftList.filter((f) => f.isLive && !f.isDemo && (f.status === 'en_route' || f.status === 'departed' || f.status === 'approaching')).length;
+
+  const weatherCondition = weather?.current?.condition ?? null;
+  const weatherTempC = weather?.current?.temperatureC ?? null;
+  const weatherMaxTemp = weather?.forecast?.maxTemperatureC ?? null;
+
+  const inrRate = currency?.rates?.INR ? currency.rates.INR : null;
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.container}>
-        <Header
-          title="AeroNexus Radar"
-          subtitle={
-            radarMode === 'live'
-              ? 'Real-Time ADS-B Aircraft Telemetry Feed'
-              : 'Simulated Demo Aircraft Telemetry Feed'
-          }
-        />
+      <Header title="AeroNexus" subtitle="Command Centre" />
 
-        {/* Live OpenSky vs Demo Fleet Mode Selector */}
-        <View style={styles.modeBar}>
-          <TouchableOpacity
-            style={[
-              styles.modeTab,
-              radarMode === 'live' && styles.modeTabActiveLive,
-            ]}
-            onPress={() => setRadarMode('live')}
-            disabled={isLoadingFlights}
-          >
-            <View style={[styles.modeDot, { backgroundColor: '#10B981' }]} />
-            <Text
-              style={[
-                styles.modeTabText,
-                radarMode === 'live' && styles.modeTabTextActive,
-              ]}
-            >
-              Live OpenSky
-            </Text>
-            {radarMode === 'live' && (
-              <View style={styles.liveTag}>
-                <Text style={styles.liveTagText}>REAL</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.modeTab,
-              radarMode === 'demo' && styles.modeTabActiveDemo,
-            ]}
-            onPress={() => setRadarMode('demo')}
-            disabled={isLoadingFlights}
-          >
-            <View style={[styles.modeDot, { backgroundColor: '#F59E0B' }]} />
-            <Text
-              style={[
-                styles.modeTabText,
-                radarMode === 'demo' && styles.modeTabTextActive,
-              ]}
-            >
-              Demo Fleet
-            </Text>
-            {radarMode === 'demo' && (
-              <View style={styles.demoTag}>
-                <Text style={styles.demoTagText}>SIMULATED</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-        </View>
-
-        {/* Airspace Selector & Provenance Banner */}
-        {radarMode === 'live' ? (
-          <View style={styles.liveHeaderCard}>
-            <View style={styles.airspaceRow}>
-              <Text style={styles.airspaceLabel}>Airspace:</Text>
-              <TouchableOpacity
-                style={[
-                  styles.presetPill,
-                  airspacePreset === 'europe' && styles.presetPillActive,
-                ]}
-                onPress={() => setAirspacePreset('europe')}
-                disabled={isLoadingFlights}
-              >
-                <Text
-                  style={[
-                    styles.presetPillText,
-                    airspacePreset === 'europe' && styles.presetPillTextActive,
-                  ]}
-                >
-                  Central Europe
-                </Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={[
-                  styles.presetPill,
-                  airspacePreset === 'us_east' && styles.presetPillActive,
-                ]}
-                onPress={() => setAirspacePreset('us_east')}
-                disabled={isLoadingFlights}
-              >
-                <Text
-                  style={[
-                    styles.presetPillText,
-                    airspacePreset === 'us_east' && styles.presetPillTextActive,
-                  ]}
-                >
-                  US East Coast
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {liveMetadata?.warning && (
-              <View style={styles.warningStrip}>
-                <Ionicons name="information-circle" size={13} color="#FBBF24" />
-                <Text style={styles.warningStripText}>{liveMetadata.warning}</Text>
-              </View>
-            )}
-
-            <Text style={styles.adsbDisclaimer}>
-              ⚠️ OpenSky broadcasts raw ADS-B radio signals. Airline gates and terminals are not transmitted over ADS-B.
-            </Text>
+      <ScrollView
+        style={styles.scroll}
+        contentContainerStyle={styles.content}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.primary} />
+        }
+      >
+        {/* Operational snapshot strip */}
+        <View style={styles.snapshotRow}>
+          <View style={styles.snapshotCard}>
+            <Text style={styles.snapshotValue}>{aircraftList.length}</Text>
+            <Text style={styles.snapshotLabel}>Aircraft In Scope</Text>
           </View>
-        ) : (
-          <View style={styles.demoHeaderCard}>
-            <Ionicons name="flask-outline" size={14} color="#F59E0B" />
-            <Text style={styles.demoDisclaimerText}>
-              Simulated Demo Flights • MySQL 8.0 / Offline Test Dataset
-            </Text>
+          <View style={styles.snapshotCard}>
+            <Text style={styles.snapshotValue}>{inFlightCount}</Text>
+            <Text style={styles.snapshotLabel}>En Route Now</Text>
           </View>
-        )}
-
-        {/* Backend Connection Status Banner */}
-        <View style={styles.statusBar}>
-          <View style={styles.statusLeft}>
-            <Ionicons
-              name={isBackendConnected ? 'cloud-done-outline' : 'cloud-offline-outline'}
-              size={14}
-              color={isBackendConnected ? '#34D399' : '#F87171'}
-            />
-            <Text style={styles.statusEndpoint} numberOfLines={1}>
-              {serverUrl}/api/flights{radarMode === 'live' ? '/live' : ''}
-            </Text>
-          </View>
-
-          <View style={styles.statusActions}>
-            <TouchableOpacity
-              style={styles.configBtn}
-              onPress={() => setShowServerConfig((prev) => !prev)}
-            >
-              <Ionicons name="settings-outline" size={13} color="#94A3B8" />
-              <Text style={styles.configBtnText}>Host</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.refreshBtn}
-              onPress={() => fetchFlights()}
-              disabled={isLoadingFlights}
-            >
-              {isLoadingFlights ? (
-                <ActivityIndicator size="small" color="#38BDF8" />
-              ) : (
-                <Ionicons name="refresh" size={14} color="#38BDF8" />
-              )}
-            </TouchableOpacity>
+          <View style={styles.snapshotCard}>
+            <Text style={styles.snapshotValue}>{briefing.totalOpen}</Text>
+            <Text style={styles.snapshotLabel}>Open Disruptions</Text>
           </View>
         </View>
 
-        {/* Optional Host Configuration Drawer */}
-        {showServerConfig && (
-          <View style={styles.configCard}>
-            <Text style={styles.configTitle}>Backend Server Address</Text>
-            <Text style={styles.configHelp}>
-              • Android Emulator: http://10.0.2.2:5000{'\n'}
-              • Physical Phone on WiFi: http://&lt;your-laptop-ip&gt;:5000{'\n'}
-              • Web Browser: http://localhost:5000
-            </Text>
-            <View style={styles.configInputRow}>
-              <TextInput
-                style={styles.configInput}
-                value={customUrlInput}
-                onChangeText={setCustomUrlInput}
-                placeholder="http://192.168.x.x:5000"
-                placeholderTextColor="#64748B"
-                autoCapitalize="none"
-              />
-              <TouchableOpacity style={styles.configSaveBtn} onPress={handleSaveCustomUrl}>
-                <Text style={styles.configSaveText}>Apply</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        )}
-
-        {/* Error Banner when background fetch failed but we have cached flights */}
-        {flightError && aircraftList.length > 0 && (
-          <View style={styles.errorToast}>
-            <Ionicons name="warning-outline" size={14} color="#FBBF24" />
-            <Text style={styles.errorToastText} numberOfLines={1}>
-              {flightError}
-            </Text>
-            <TouchableOpacity onPress={() => fetchFlights()} style={styles.toastRetryBtn}>
-              <Text style={styles.toastRetryText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Core Content: Loading, Error, Empty, or Radar View */}
-        {isLoadingFlights && aircraftList.length === 0 ? (
-          /* Loading State */
-          <View style={styles.centeredStateContainer}>
-            <ActivityIndicator size="large" color="#38BDF8" />
-            <Text style={styles.loadingTitle}>
-              {radarMode === 'live' ? 'Contacting OpenSky Network' : 'Loading Demo Flights'}
-            </Text>
-            <Text style={styles.loadingSubtitle}>
-              Requesting {radarMode === 'live' ? '/api/flights/live' : '/api/flights'} via {serverUrl}...
-            </Text>
-          </View>
-        ) : flightError && aircraftList.length === 0 ? (
-          /* Error State */
-          <ScrollView contentContainerStyle={styles.centeredStateContainer}>
-            <View style={styles.errorIconCircle}>
-              <Ionicons name="cloud-offline-outline" size={36} color="#EF4444" />
-            </View>
-            <Text style={styles.errorTitle}>Cannot Connect to Server</Text>
-            <Text style={styles.errorMessage}>{flightError}</Text>
-            <Text style={styles.errorHint}>
-              Make sure your Express server is running on port 5000 and that this device can reach{' '}
-              <Text style={{ color: '#38BDF8', fontWeight: '700' }}>{serverUrl}</Text>.
-            </Text>
-
-            <TouchableOpacity style={styles.retryBtn} onPress={() => fetchFlights()}>
-              <Ionicons name="reload" size={16} color="#FFFFFF" />
-              <Text style={styles.retryBtnText}>Retry Connection</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.changeIpBtn}
-              onPress={() => setShowServerConfig(true)}
-            >
-              <Text style={styles.changeIpText}>Change Host / IP Address</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        ) : aircraftList.length === 0 ? (
-          /* Empty State */
-          <View style={styles.centeredStateContainer}>
-            <Ionicons name="airplane-outline" size={40} color="#64748B" />
-            <Text style={styles.emptyTitle}>No Flight Records</Text>
-            <Text style={styles.emptySubtitle}>
-              The backend returned zero flight records for the current filter.
-            </Text>
-            <TouchableOpacity style={styles.retryBtn} onPress={() => fetchFlights()}>
-              <Text style={styles.retryBtnText}>Reload Flights</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          /* Success: Radar & Flight List View */
-          <AircraftRadarView
-            aircraftList={aircraftList}
-            onSelectAircraft={handleSelectAircraft}
-            selectedAircraft={selectedAircraft}
-            onOpenDetails={handleOpenDetailModal}
+        {/* Primary KPI grid */}
+        <View style={styles.statGrid}>
+          <StatCard
+            title="Live Fleet"
+            value={isLoadingFlights ? '…' : String(aircraftList.length)}
+            subtitle={isBackendConnected ? (radarMode === 'live' ? 'OpenSky telemetry stream connected' : 'Demo fleet active') : 'Backend offline'}
+            icon="airplane"
+            tone="primary"
+            onPress={() => router.push('/radar')}
           />
-        )}
+          <StatCard
+            title="Weather Outlook"
+            value={weatherLoading ? '…' : weatherTempC != null ? `${Math.round(weatherTempC)}°C` : '—'}
+            subtitle={weatherCondition ? `${weatherCondition}${weatherMaxTemp != null ? ` • H ${Math.round(weatherMaxTemp)}°` : ''}` : weatherError ?? 'Unavailable'}
+            icon="partly-cloudy"
+            tone="info"
+            onPress={() => router.push('/radar')}
+          />
+          <StatCard
+            title="FX Indicative"
+            value={currencyLoading ? '…' : inrRate != null ? `₹ ${inrRate.toFixed(2)}` : '—'}
+            subtitle={currencyError ?? (currency ? `Base ${currency.base} • via Open ER-API` : 'Unavailable')}
+            icon="cash"
+            tone="success"
+            onPress={() => router.push('/fares')}
+          />
+          <StatCard
+            title="Alerts"
+            value={String(unreadCount)}
+            subtitle="Unread notifications"
+            icon="notifications"
+            tone={unreadCount > 0 ? 'warning' : 'default'}
+            onPress={() => router.push('/alerts')}
+          />
+        </View>
 
-        {/* Modal Sheet for Flight Telemetry */}
-        <FlightDetailModal
-          aircraft={selectedAircraft}
-          visible={modalVisible}
-          onClose={handleCloseModal}
-        />
-      </View>
+        {/* Data sources / confidence strip */}
+        <View style={styles.confidenceCard}>
+          <View style={styles.confidenceHeader}>
+            <Ionicons name="shield-checkmark" size={14} color={Palette.success} />
+            <Text style={styles.confidenceTitle}>Data Confidence</Text>
+          </View>
+          <View style={styles.sourceRow}>
+            <View style={styles.sourceItem}>
+              <Text style={styles.sourceLabel}>OpenSky</Text>
+              <Badge tone={isBackendConnected ? 'success' : 'danger'} label={isBackendConnected ? 'CONNECTED' : 'OFFLINE'} />
+            </View>
+            <View style={styles.sourceItem}>
+              <Text style={styles.sourceLabel}>Open-Meteo</Text>
+              <Badge tone={weather ? 'success' : 'warning'} label={weather ? (weather.dataFreshness.status === 'valid' ? 'FRESH' : 'STALE') : 'CHECKING'} />
+            </View>
+            <View style={styles.sourceItem}>
+              <Text style={styles.sourceLabel}>Open ER-API</Text>
+              <Badge tone={currency ? 'success' : 'warning'} label={currency ? 'ACTIVE' : 'CHECKING'} />
+            </View>
+          </View>
+          <Text style={styles.confidenceNote}>
+            Live feeds are validated against freshness metadata. Cached or unavailable sources are flagged — never silently substituted.
+          </Text>
+        </View>
+
+        {/* Disruption briefing */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name={briefing.hasOpenDisruptions ? 'alert-triangle' : 'checkmark-circle'} size={16} color={briefing.hasOpenDisruptions ? Palette.warning : Palette.success} />
+            <Text style={styles.sectionTitle}>Disruption Briefing</Text>
+          </View>
+          {briefing.hasOpenDisruptions ? (
+            <>
+              <Text style={styles.briefingSummary}>
+                {briefing.topDisruption
+                  ? `${briefing.topDisruption.flightNumber} · ${briefing.topDisruption.summary}`
+                  : 'Open disruption cases detected.'}
+              </Text>
+              <View style={styles.actionList}>
+                {briefing.recommendedActions.slice(0, 2).map((action, idx) => (
+                  <View key={`${action}-${idx}`} style={styles.actionRow}>
+                    <Ionicons name="arrow-forward-circle" size={13} color={Palette.primary} />
+                    <Text style={styles.actionText}>{action}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          ) : (
+            <Text style={styles.briefingEmpty}>No open disruptions. Fleet operations nominal.</Text>
+          )}
+        </View>
+
+        {/* Quick actions */}
+        <View style={styles.sectionCard}>
+          <View style={styles.sectionHeader}>
+            <Ionicons name="grid" size={16} color={Palette.primary} />
+            <Text style={styles.sectionTitle}>Operations</Text>
+          </View>
+          <View style={styles.quickGrid}>
+            <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/radar')}>
+              <Ionicons name="radar" size={18} color={Palette.primary} />
+              <Text style={styles.quickLabel}>Live Radar</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/airports')}>
+              <Ionicons name="business" size={18} color={Palette.primary} />
+              <Text style={styles.quickLabel}>Airports</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/fares')}>
+              <Ionicons name="pricetag" size={18} color={Palette.primary} />
+              <Text style={styles.quickLabel}>Fares</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/flights')}>
+              <Ionicons name="airplane" size={18} color={Palette.primary} />
+              <Text style={styles.quickLabel}>Flight Intel</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/staff')}>
+              <Ionicons name="shield-checkmark" size={18} color={Palette.primary} />
+              <Text style={styles.quickLabel}>Staff Ops</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/settings')}>
+              <Ionicons name="settings" size={18} color={Palette.primary} />
+              <Text style={styles.quickLabel}>Settings</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Backend status strip */}
+        <View style={styles.sectionCard}>
+          <TouchableOpacity style={styles.backendRow} onPress={() => fetchFlights()} disabled={isLoadingFlights}>
+            {isLoadingFlights ? <ActivityIndicator size="small" color={Palette.primary} /> : <Ionicons name="refresh" size={14} color={Palette.primary} />}
+            <Text style={styles.backendText}>
+              Backend: {isBackendConnected ? 'Operational' : 'Unreachable'} • {isLoadingFlights ? 'Syncing' : 'Synced'}
+            </Text>
+          </TouchableOpacity>
+          {flightError ? <Text style={styles.backendError}>{flightError}</Text> : null}
+        </View>
+      </ScrollView>
     </SafeAreaView>
   );
 }
@@ -330,362 +259,176 @@ export default function RadarMapScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: Palette.background,
   },
-  container: {
+  scroll: {
     flex: 1,
-    backgroundColor: '#F8FAFC',
   },
-  statusBar: {
+  content: {
+    paddingBottom: 24,
+    paddingHorizontal: 16,
+  },
+  snapshotRow: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 12,
+  },
+  snapshotCard: {
+    flex: 1,
+    backgroundColor: Palette.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    padding: 12,
+    ...Platform.select({
+      ios: { shadowColor: '#0F172A', shadowOffset: { width: 0, height: 1 }, shadowOpacity: 0.05, shadowRadius: 2 },
+      default: { elevation: 2 },
+    }),
+  },
+  snapshotValue: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: Palette.textPrimary,
+  },
+  snapshotLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: Palette.textMuted,
+    marginTop: 2,
+  },
+  statGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 12,
+  },
+  confidenceCard: {
+    backgroundColor: Palette.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    padding: 12,
+    marginBottom: 12,
+  },
+  confidenceHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  confidenceTitle: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: Palette.textPrimary,
+    letterSpacing: 0.3,
+  },
+  sourceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-  },
-  statusLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-    marginRight: 10,
-    gap: 6,
-  },
-  statusEndpoint: {
-    fontSize: 11,
-    color: '#64748B',
-    fontWeight: '600',
-  },
-  statusActions: {
-    flexDirection: 'row',
-    alignItems: 'center',
     gap: 8,
   },
-  configBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#F1F5F9',
-    paddingHorizontal: 8,
-    paddingVertical: 5,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
+  sourceItem: {
+    alignItems: 'flex-start',
     gap: 4,
   },
-  configBtnText: {
-    fontSize: 11,
-    color: '#0F172A',
-    fontWeight: '600',
-  },
-  refreshBtn: {
-    padding: 4,
-  },
-  configCard: {
-    backgroundColor: '#FFFFFF',
-    margin: 12,
-    borderRadius: 10,
-    padding: 14,
-    borderWidth: 1.5,
-    borderColor: '#0284C7',
-    elevation: 3,
-    shadowColor: '#000000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 3,
-  },
-  configTitle: {
-    fontSize: 13,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 4,
-  },
-  configHelp: {
-    fontSize: 11,
-    color: '#64748B',
-    lineHeight: 16,
-    marginBottom: 10,
-  },
-  configInputRow: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  configInput: {
-    flex: 1,
-    backgroundColor: '#F8FAFC',
-    borderRadius: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    color: '#0F172A',
-    fontSize: 12,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-  },
-  configSaveBtn: {
-    backgroundColor: '#0284C7',
-    paddingHorizontal: 16,
-    justifyContent: 'center',
-    borderRadius: 6,
-  },
-  configSaveText: {
-    color: '#FFFFFF',
-    fontSize: 12,
-    fontWeight: '700',
-  },
-  errorToast: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFBEB',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FDE68A',
-    gap: 8,
-  },
-  errorToastText: {
-    flex: 1,
-    fontSize: 11,
-    color: '#92400E',
-    fontWeight: '500',
-  },
-  toastRetryBtn: {
-    backgroundColor: '#D97706',
-    paddingHorizontal: 10,
-    paddingVertical: 3,
-    borderRadius: 4,
-  },
-  toastRetryText: {
+  sourceLabel: {
     fontSize: 10,
-    fontWeight: '800',
-    color: '#FFFFFF',
-  },
-  centeredStateContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-    backgroundColor: '#F8FAFC',
-  },
-  loadingTitle: {
-    fontSize: 15,
     fontWeight: '700',
-    color: '#0F172A',
-    marginTop: 14,
+    letterSpacing: 0.4,
+    textTransform: 'uppercase',
+    color: Palette.textMuted,
   },
-  loadingSubtitle: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  errorIconCircle: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#FEF2F2',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#FECACA',
-  },
-  errorTitle: {
-    fontSize: 17,
-    fontWeight: '800',
-    color: '#0F172A',
-    marginBottom: 6,
-  },
-  errorMessage: {
-    fontSize: 12,
-    color: '#DC2626',
-    textAlign: 'center',
-    marginBottom: 10,
-    lineHeight: 18,
-  },
-  errorHint: {
-    fontSize: 11,
-    color: '#64748B',
-    textAlign: 'center',
-    lineHeight: 16,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-  },
-  retryBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#0284C7',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 8,
-  },
-  retryBtnText: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    fontSize: 13,
-  },
-  changeIpBtn: {
-    marginTop: 12,
-    padding: 6,
-  },
-  changeIpText: {
-    fontSize: 11,
-    color: '#0284C7',
-    fontWeight: '600',
-  },
-  emptyTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: '#0F172A',
-    marginTop: 12,
-  },
-  emptySubtitle: {
-    fontSize: 12,
-    color: '#64748B',
-    marginTop: 4,
-    textAlign: 'center',
-  },
-  modeBar: {
-    flexDirection: 'row',
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E2E8F0',
-    gap: 8,
-  },
-  modeTab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#F8FAFC',
-    paddingVertical: 9,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    gap: 6,
-  },
-  modeTabActiveLive: {
-    backgroundColor: '#ECFDF5',
-    borderColor: '#059669',
-  },
-  modeTabActiveDemo: {
-    backgroundColor: '#FFFBEB',
-    borderColor: '#D97706',
-  },
-  modeDot: {
-    width: 7,
-    height: 7,
-    borderRadius: 4,
-  },
-  modeTabText: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: '#64748B',
-  },
-  modeTabTextActive: {
-    color: '#0F172A',
-    fontWeight: '800',
-  },
-  liveTag: {
-    backgroundColor: '#059669',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  liveTagText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '900',
-  },
-  demoTag: {
-    backgroundColor: '#D97706',
-    paddingHorizontal: 6,
-    paddingVertical: 1,
-    borderRadius: 4,
-  },
-  demoTagText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '900',
-  },
-  liveHeaderCard: {
-    backgroundColor: '#F0F9FF',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#BAE6FD',
-    gap: 6,
-  },
-  airspaceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  airspaceLabel: {
-    fontSize: 11,
-    fontWeight: '700',
-    color: '#0F172A',
-  },
-  presetPill: {
-    backgroundColor: '#FFFFFF',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: '#CBD5E1',
-  },
-  presetPillActive: {
-    backgroundColor: '#0284C7',
-    borderColor: '#0369A1',
-  },
-  presetPillText: {
-    fontSize: 11,
-    color: '#475569',
-    fontWeight: '600',
-  },
-  presetPillTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '800',
-  },
-  warningStrip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFFBEB',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: '#FDE68A',
-    gap: 6,
-  },
-  warningStripText: {
-    flex: 1,
+  confidenceNote: {
     fontSize: 10,
-    color: '#92400E',
-    fontWeight: '500',
-  },
-  adsbDisclaimer: {
-    fontSize: 10,
-    color: '#64748B',
+    color: Palette.textMuted,
+    marginTop: 8,
     lineHeight: 14,
-    fontStyle: 'italic',
   },
-  demoHeaderCard: {
+  sectionCard: {
+    backgroundColor: Palette.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    padding: 12,
+    marginBottom: 12,
+  },
+  sectionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFBEB',
-    paddingHorizontal: 14,
-    paddingVertical: 8,
-    borderBottomWidth: 1,
-    borderBottomColor: '#FDE68A',
+    gap: 6,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Palette.textPrimary,
+    letterSpacing: 0.3,
+  },
+  briefingSummary: {
+    fontSize: 12,
+    color: Palette.textSecondary,
+    fontWeight: '600',
+    lineHeight: 16,
+  },
+  actionList: {
+    marginTop: 8,
     gap: 6,
   },
-  demoDisclaimerText: {
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 6,
+  },
+  actionText: {
+    flex: 1,
     fontSize: 11,
-    color: '#92400E',
+    color: Palette.textSecondary,
+    fontWeight: '500',
+    lineHeight: 15,
+  },
+  briefingEmpty: {
+    fontSize: 12,
+    color: Palette.successText,
     fontWeight: '600',
+  },
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  quickTile: {
+    width: '31%',
+    minWidth: 96,
+    alignItems: 'center',
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: Palette.surfaceSubtle,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    gap: 6,
+  },
+  quickLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 0.3,
+    color: Palette.textSecondary,
+  },
+  backendRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  backendText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: Palette.textSecondary,
+  },
+  backendError: {
+    fontSize: 11,
+    color: Palette.dangerText,
+    marginTop: 6,
+    fontWeight: '500',
   },
 });

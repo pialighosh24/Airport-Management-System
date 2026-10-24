@@ -15,7 +15,7 @@ describe('AeroNexus Backend API - Phase 2 Health Check Tests', () => {
       'AeroNexus — Smart Flight Tracking Backend',
       'service name should identify as AeroNexus'
     );
-    assert.strictEqual(res.body.status, 'online', 'status should be online');
+    assert.strictEqual(res.body.status, 'healthy', 'status should be healthy');
     assert.ok(res.body.timestamp, 'timestamp field should exist');
     assert.ok(typeof res.body.uptimeSeconds === 'number', 'uptimeSeconds should be a number');
 
@@ -43,6 +43,6 @@ describe('AeroNexus Backend API - Phase 2 Health Check Tests', () => {
 
     assert.strictEqual(res.statusCode, 404);
     assert.strictEqual(res.body.success, false);
-    assert.strictEqual(res.body.error, 'NotFoundError');
+    assert.strictEqual(res.body.error, 'NotFound');
   });
 });

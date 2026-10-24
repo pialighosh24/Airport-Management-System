@@ -8,6 +8,7 @@ const { DEMO_AIRPORTS, DEMO_DISCLAIMER } = require('../data/demoData');
 const { searchAirports } = require('../services/airportService');
 
 const VALID_TYPES = ['all', 'departure', 'arrival'];
+const IATA_CODE_REGEX = /^[A-Z]{3}$/;
 
 const searchAirportsHandler = async (req, res) => {
   const rawSearch = req.query.search !== undefined ? req.query.search : req.query.q;
@@ -110,7 +111,16 @@ const getAirportSchedule = (req, res) => {
     });
   }
 
-  const airportKey = code.trim().toUpperCase();
+  const normalizedCode = code.trim().toUpperCase();
+  if (!IATA_CODE_REGEX.test(normalizedCode)) {
+    return res.status(400).json({
+      success: false,
+      error: 'ValidationError',
+      message: `Invalid airport code '${code}'. Must be a 3-letter IATA code (e.g. CCU, JFK, LHR).`,
+    });
+  }
+
+  const airportKey = normalizedCode;
   const airportData = DEMO_AIRPORTS[airportKey];
 
   if (!airportData) {
@@ -147,9 +157,9 @@ const getAirportSchedule = (req, res) => {
     },
     filterType: normalizedType,
     summary: {
-      departuresCount: (airportData.departures || []).length,
-      arrivalsCount: (airportData.arrivals || []).length,
-      totalFlights: (airportData.departures || []).length + (airportData.arrivals || []).length,
+      departuresCount: (departures || []).length,
+      arrivalsCount: (arrivals || []).length,
+      totalFlights: (departures || []).length + (arrivals || []).length,
     },
     departures,
     arrivals,

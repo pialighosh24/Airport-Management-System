@@ -12,6 +12,8 @@ function notFound(req, res, next) {
       auth: 'POST /api/auth/login, POST /api/auth/staff-login',
       disruptions: 'GET /api/disruptions',
       alerts: 'GET /api/alerts',
+      weather: 'GET /api/weather?latitude=..&longitude=..',
+      currency: 'GET /api/currency?base=USD&symbols=INR,USD',
     },
   });
 }

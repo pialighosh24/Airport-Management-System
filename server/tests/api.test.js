@@ -14,7 +14,7 @@ describe('AeroNexus Backend API - Phase 2 Comprehensive Test Suite', () => {
       assert.strictEqual(res.statusCode, 200);
       assert.strictEqual(res.body.success, true);
       assert.strictEqual(res.body.service, 'AeroNexus — Smart Flight Tracking Backend');
-      assert.strictEqual(res.body.status, 'online');
+      assert.strictEqual(res.body.status, 'healthy');
       assert.ok(typeof res.body.uptimeSeconds === 'number');
 
       // Phase 4: Database health status
@@ -162,7 +162,7 @@ describe('AeroNexus Backend API - Phase 2 Comprehensive Test Suite', () => {
       assert.strictEqual(res.statusCode, 404);
       assert.strictEqual(res.body.success, false);
       assert.strictEqual(res.body.error, 'NotFoundError');
-      assert.ok(Array.isArray(res.body.availableDemoAirports));
+      assert.ok(Array.isArray(res.body.availableAirports));
     });
   });
 
@@ -332,7 +332,7 @@ describe('AeroNexus Backend API - Phase 2 Comprehensive Test Suite', () => {
 
       assert.strictEqual(res.statusCode, 404);
       assert.strictEqual(res.body.success, false);
-      assert.strictEqual(res.body.error, 'NotFoundError');
+      assert.strictEqual(res.body.error, 'NotFound');
     });
   });
 

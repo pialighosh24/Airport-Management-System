@@ -186,3 +186,85 @@ export interface AlertNotification {
   timestampUtc: string;
   read: boolean;
 }
+
+/* -------------------------------------------------------------------------- */
+/* Weather (Open-Meteo via AeroNexus backend)                                 */
+/* -------------------------------------------------------------------------- */
+
+export interface WeatherCurrentConditions {
+  temperatureC: number | null;
+  apparentTemperatureC: number | null;
+  humidityPercent: number | null;
+  isDay: boolean;
+  precipitationMm: number;
+  weatherCode: number | null;
+  condition: string;
+  windSpeedKnots: number | null;
+  windDirectionDegrees: number | null;
+  windGustKnots: number | null;
+  cloudCoverPercent: number | null;
+  visibilityKm: number | null;
+  observedAtUtc: string | null;
+  source?: string;
+}
+
+export interface WeatherForecast {
+  forecastDays: number;
+  validFromUtc: string | null;
+  validUntilUtc: string | null;
+  maxTemperatureC: number | null;
+  minTemperatureC: number | null;
+  totalPrecipitationMm: number;
+  maxWindSpeedKnots: number;
+  thunderstormRisk: boolean;
+  summary: string;
+}
+
+export interface WeatherDataFreshness {
+  status: FreshnessStatus;
+  retrievalTimeUtc: string;
+  providerName: string;
+  notes?: string;
+}
+
+export interface WeatherSummaryResponse {
+  success: boolean;
+  source: string;
+  providerName: string;
+  latitude: number;
+  longitude: number;
+  current: WeatherCurrentConditions | null;
+  forecast: WeatherForecast | null;
+  dataFreshness: WeatherDataFreshness;
+  retrievedAtUtc: string;
+  fromCache?: boolean;
+  cacheAgeSeconds?: number;
+  disclaimer: string;
+}
+
+/* -------------------------------------------------------------------------- */
+/* Currency Exchange Rates (Open Exchange Rate API via AeroNexus backend)    */
+/* -------------------------------------------------------------------------- */
+
+export interface CurrencyRates {
+  base: string;
+  baseCurrency: string;
+  rates: Record<string, number>;
+  updatedAtUtc: string;
+  retrievedAtUtc: string;
+  disclaimer: string;
+  fromProvider: string;
+}
+
+export interface CurrencyResponse {
+  success: boolean;
+  source: string;
+  providerName: string;
+  base: string;
+  baseCurrency: string;
+  rates: Record<string, number>;
+  updatedAtUtc: string;
+  retrievedAtUtc: string;
+  disclaimer: string;
+  fromProvider: string;
+}
