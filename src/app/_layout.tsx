@@ -52,7 +52,7 @@ export default function RootLayout() {
           options={{
             title: 'Live Radar',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'radar' : 'radar-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'radio' : 'radio-outline'} size={22} color={color} />
             ),
           }}
         />

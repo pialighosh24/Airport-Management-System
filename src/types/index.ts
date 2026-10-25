@@ -267,4 +267,5 @@ export interface CurrencyResponse {
   retrievedAtUtc: string;
   disclaimer: string;
   fromProvider: string;
+  fromCache?: boolean;
 }

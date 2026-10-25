@@ -12,7 +12,7 @@
 
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail, WeatherSummaryResponse, CurrencyResponse, WeatherCurrentConditions, WeatherForecast } from '@/types';
+import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail, WeatherSummaryResponse, CurrencyResponse } from '@/types';
 
 // Detect the best default backend URL based on platform and environment
 export function getDefaultBaseUrl(): string {

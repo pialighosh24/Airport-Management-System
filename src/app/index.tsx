@@ -43,43 +43,62 @@ export default function CommandDashboard() {
 
   const [refreshing, setRefreshing] = useState(false);
 
-  const loadWeather = useCallback(async () => {
-    setWeatherLoading(true);
-    setWeatherError(null);
-    try {
-      const response = await apiService.getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 });
-      setWeather(response);
-    } catch (err: unknown) {
-      setWeatherError(err instanceof Error ? err.message : 'Weather service unavailable.');
-    } finally {
-      setWeatherLoading(false);
-    }
-  }, []);
-
-  const loadCurrency = useCallback(async () => {
-    setCurrencyLoading(true);
-    setCurrencyError(null);
-    try {
-      const response = await apiService.getCurrency({ base: 'USD', symbols: ['USD', 'INR'] });
-      setCurrency(response);
-    } catch (err: unknown) {
-      setCurrencyError(err instanceof Error ? err.message : 'Currency service unavailable.');
-    } finally {
-      setCurrencyLoading(false);
-    }
-  }, []);
-
+  // Bootstrap weather + currency once on mount. State updates happen inside
+  // async continuations only (never synchronously within the effect body).
   useEffect(() => {
-    loadWeather();
-    loadCurrency();
-  }, [loadWeather, loadCurrency]);
+    let mounted = true;
+
+    const bootstrap = async () => {
+      const weatherResponse = await apiService
+        .getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 })
+        .catch(() => null);
+      const currencyResponse = await apiService
+        .getCurrency({ base: 'USD', symbols: ['USD', 'INR'] })
+        .catch(() => null);
+
+      if (!mounted) return;
+
+      if (weatherResponse) {
+        setWeather(weatherResponse);
+        setWeatherError(null);
+      }
+      if (currencyResponse) {
+        setCurrency(currencyResponse);
+        setCurrencyError(null);
+      }
+      setWeatherLoading(false);
+      setCurrencyLoading(false);
+    };
+
+    void bootstrap();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    await Promise.all([loadWeather(), loadCurrency()]);
+    const weatherResponse = await apiService
+      .getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 })
+      .catch(() => null);
+    const currencyResponse = await apiService
+      .getCurrency({ base: 'USD', symbols: ['USD', 'INR'] })
+      .catch(() => null);
+
+    if (weatherResponse) {
+      setWeather(weatherResponse);
+      setWeatherError(null);
+    }
+    if (currencyResponse) {
+      setCurrency(currencyResponse);
+      setCurrencyError(null);
+    }
+    setWeatherLoading(false);
+    setCurrencyLoading(false);
     await fetchFlights();
     setRefreshing(false);
-  }, [loadWeather, loadCurrency, fetchFlights]);
+  }, [fetchFlights]);
 
   const briefing = buildDisruptionBriefing(disruptionCases);
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -133,7 +152,7 @@ export default function CommandDashboard() {
             title="Weather Outlook"
             value={weatherLoading ? '…' : weatherTempC != null ? `${Math.round(weatherTempC)}°C` : '—'}
             subtitle={weatherCondition ? `${weatherCondition}${weatherMaxTemp != null ? ` • H ${Math.round(weatherMaxTemp)}°` : ''}` : weatherError ?? 'Unavailable'}
-            icon="partly-cloudy"
+            icon="cloud"
             tone="info"
             onPress={() => router.push('/radar')}
           />
@@ -183,7 +202,7 @@ export default function CommandDashboard() {
         {/* Disruption briefing */}
         <View style={styles.sectionCard}>
           <View style={styles.sectionHeader}>
-            <Ionicons name={briefing.hasOpenDisruptions ? 'alert-triangle' : 'checkmark-circle'} size={16} color={briefing.hasOpenDisruptions ? Palette.warning : Palette.success} />
+            <Ionicons name={briefing.hasOpenDisruptions ? 'alert' : 'checkmark'} size={16} color={briefing.hasOpenDisruptions ? Palette.warning : Palette.success} />
             <Text style={styles.sectionTitle}>Disruption Briefing</Text>
           </View>
           {briefing.hasOpenDisruptions ? (
@@ -215,7 +234,7 @@ export default function CommandDashboard() {
           </View>
           <View style={styles.quickGrid}>
             <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/radar')}>
-              <Ionicons name="radar" size={18} color={Palette.primary} />
+              <Ionicons name="radio" size={18} color={Palette.primary} />
               <Text style={styles.quickLabel}>Live Radar</Text>
             </TouchableOpacity>
             <TouchableOpacity style={styles.quickTile} onPress={() => router.push('/airports')}>
