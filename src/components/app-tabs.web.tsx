@@ -8,6 +8,7 @@ import {
 } from 'expo-router/ui';
 import { SymbolView } from 'expo-symbols';
 import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import type * as React from 'react';
 
 import { ExternalLink } from './external-link';
 import { ThemedText } from './themed-text';
@@ -34,8 +35,11 @@ export default function AppTabs() {
 }
 
 export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+  const { style, ...restProps } = props;
+  const pressableProps = restProps as React.ComponentProps<typeof Pressable>;
+
   return (
-    <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
+    <Pressable {...pressableProps} style={style ?? styles.tabButtonView}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>
@@ -49,7 +53,8 @@ export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps
 
 export function CustomTabList(props: TabListProps) {
   const scheme = useColorScheme();
-  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const theme = scheme === 'light' || scheme === 'dark' ? scheme : 'light';
+  const colors = Colors[theme];
 
   return (
     <View {...props} style={styles.tabListContainer}>

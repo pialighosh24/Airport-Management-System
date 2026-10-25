@@ -43,7 +43,7 @@ export default function RootLayout() {
           options={{
             title: 'Dashboard',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'speedometer' : 'speedometer-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'speedometer' : 'speedometer-outline'} size={22} color={typeof color === 'string' ? color : Palette.textPrimary} />
             ),
           }}
         />
@@ -52,7 +52,7 @@ export default function RootLayout() {
           options={{
             title: 'Live Radar',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'radio' : 'radio-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'radio' : 'radio-outline'} size={22} color={typeof color === 'string' ? color : Palette.textPrimary} />
             ),
           }}
         />
@@ -61,7 +61,7 @@ export default function RootLayout() {
           options={{
             title: 'Airports',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'business' : 'business-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'business' : 'business-outline'} size={22} color={typeof color === 'string' ? color : Palette.textPrimary} />
             ),
           }}
         />
@@ -70,7 +70,7 @@ export default function RootLayout() {
           options={{
             title: 'Fares',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'pricetag' : 'pricetag-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'pricetag' : 'pricetag-outline'} size={22} color={typeof color === 'string' ? color : Palette.textPrimary} />
             ),
           }}
         />
@@ -79,7 +79,7 @@ export default function RootLayout() {
           options={{
             title: 'Alerts',
             tabBarIcon: ({ color, focused }) => (
-              <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={22} color={color} />
+              <Ionicons name={focused ? 'notifications' : 'notifications-outline'} size={22} color={typeof color === 'string' ? color : Palette.textPrimary} />
             ),
           }}
         />
