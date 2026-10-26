@@ -148,6 +148,55 @@ export interface FlightFare {
   isTransparentGuaranteed: boolean; // Guarantee of zero hidden fees at checkout
 }
 
+export interface AmadeusOffer {
+  offerId: string;
+  flightNumber: string | null;
+  airlineName: string | null;
+  originIata: string | null;
+  destinationIata: string | null;
+  departureTimeUtc: string | null;
+  arrivalTimeUtc: string | null;
+  durationMinutes: number | null;
+  totalPrice: number | null;
+  currency: string;
+  available: boolean;
+}
+
+export interface FlightStatusDetails {
+  status: string | null;
+  description: string | null;
+  requestedFlight: unknown;
+  departureTimeUtc: string | null;
+  arrivalTimeUtc: string | null;
+  origin: string | null;
+  destination: string | null;
+  airline: unknown;
+  aircraft: unknown;
+}
+
+export interface FlightStatusResponse {
+  success: boolean;
+  source: string;
+  providerName: string;
+  flightIdentifier: string;
+  flight: FlightStatusDetails | null;
+  retrievedAtUtc: string;
+  disclaimer: string;
+}
+
+export interface GroundOperationTask {
+  id: string;
+  taskNumber: string;
+  flightNumber: string | null;
+  type: string;
+  status: 'pending' | 'in_progress' | 'completed';
+  assignedTo: string | null;
+  priority: string;
+  notes: string | null;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+}
+
 export interface DisruptionCase {
   id: string;
   caseNumber: string;

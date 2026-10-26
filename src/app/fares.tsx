@@ -14,7 +14,7 @@ import { FareCard } from '@/components/fares/FareCard';
 import { FareBreakdownModal } from '@/components/fares/FareBreakdownModal';
 import { DEMO_FARES } from '@/data/demo-fares';
 import { apiService } from '@/services/api';
-import { FlightFare } from '@/types';
+import { FlightFare, AmadeusOffer } from '@/types';
 
 type SortOption = 'cheapest' | 'fastest' | 'best_value';
 
@@ -25,6 +25,9 @@ export default function FaresScreen() {
   const [fares, setFares] = useState<FlightFare[]>(DEMO_FARES);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [liveOffers, setLiveOffers] = useState<AmadeusOffer[]>([]);
+  const [liveOffersLoading, setLiveOffersLoading] = useState(false);
+  const [liveOffersError, setLiveOffersError] = useState<string | null>(null);
 
   // Fetch fares from Express backend: GET /api/fares?sortBy=...
   useEffect(() => {
@@ -54,6 +57,45 @@ export default function FaresScreen() {
       isMounted = false;
     };
   }, [sortBy]);
+
+  // Fetch live Amadeus flight offers: GET /api/flights/search?origin=JFK&destination=LHR&departureDate=2026-10-15&adults=1&cabinClass=Economy
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLiveOffers = async () => {
+      setLiveOffersLoading(true);
+      setLiveOffersError(null);
+      try {
+        const response = await apiService.getFlightOffers({
+          origin: 'JFK',
+          destination: 'LHR',
+          departureDate: '2026-10-15',
+          adults: 1,
+          cabinClass: 'Economy',
+        });
+        if (isMounted) {
+          if (response && response.success && Array.isArray(response.offers)) {
+            setLiveOffers(response.offers);
+          } else {
+            setLiveOffers([]);
+            setLiveOffersError(response?.message || 'Live flight offers are currently unavailable.');
+          }
+        }
+      } catch (err: unknown) {
+        if (isMounted) {
+          const msg = err instanceof Error ? err.message : 'Live offers unavailable';
+          setLiveOffers([]);
+          setLiveOffersError(msg);
+        }
+      } finally {
+        if (isMounted) setLiveOffersLoading(false);
+      }
+    };
+
+    fetchLiveOffers();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   const handleOpenBreakdown = (fare: FlightFare) => {
     setSelectedFare(fare);
@@ -191,6 +233,35 @@ export default function FaresScreen() {
           </View>
         )}
 
+        {/* Live Amadeus Offers */}
+        <View style={styles.liveOffersSection}>
+          <View style={styles.liveOffersHeader}>
+            <Ionicons name="airplane-outline" size={13} color="#0284C7" />
+            <Text style={styles.sortSectionLabel}>LIVE AMMADEUS OFFERS</Text>
+          </View>
+          {liveOffersLoading ? (
+            <View style={styles.loadingBox}>
+              <ActivityIndicator size="small" color="#0284C7" />
+              <Text style={styles.loadingText}>Searching live flight offers via Amadeus...</Text>
+            </View>
+          ) : liveOffersError ? (
+            <View style={styles.errorNotice}>
+              <Ionicons name="information-circle-outline" size={13} color="#D97706" />
+              <Text style={styles.errorNoticeText}>{liveOffersError}</Text>
+            </View>
+          ) : liveOffers.length > 0 ? (
+            liveOffers.map((offer, index) => (
+              <View key={offer.offerId || `live_offer_${index}`} style={styles.liveOfferCard}>
+                <View style={styles.liveOfferRow}>
+                  <Text style={styles.liveOfferFlight}>{`Flight ${offer.flightNumber ?? '—'} • ${offer.airlineName ?? 'Airline'} • ${offer.originIata ?? '?'} → ${offer.destinationIata ?? '?'}`}</Text>
+                  <Text style={styles.liveOfferPrice}>{offer.totalPrice != null ? `${offer.currency} ${offer.totalPrice}` : 'Price unavailable'}</Text>
+                </View>
+                <Text style={styles.liveOfferText}>{`Dep ${offer.departureTimeUtc ?? '—'} • Arr ${offer.arrivalTimeUtc ?? '—'} • ${offer.durationMinutes ?? '—'} min`}</Text>
+              </View>
+            ))
+          ) : null}
+        </View>
+
         {/* Fares List */}
         <ScrollView style={styles.faresList} showsVerticalScrollIndicator={false}>
           {isLoading ? (
@@ -221,6 +292,45 @@ export default function FaresScreen() {
 }
 
 const styles = StyleSheet.create({
+  liveOffersSection: {
+    paddingHorizontal: 16,
+    paddingTop: 4,
+  },
+  liveOffersHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  liveOfferCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  liveOfferRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  liveOfferFlight: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  liveOfferPrice: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0284C7',
+  },
+  liveOfferText: {
+    fontSize: 11,
+    color: '#475569',
+    fontWeight: '500',
+  },
   safeArea: {
     flex: 1,
     backgroundColor: '#F8FAFC',

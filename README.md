@@ -140,7 +140,7 @@ All provider credentials remain **server-side** (env vars); the mobile client ca
 
 ## Environment Variables
 
-- `backend/.env.example` → copy to `backend/.env`: `PORT`, `NODE_ENV`, `CLIENT_ORIGINS`, `DB_*`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `OPENSKY_USERNAME`, `OPENSKY_PASSWORD`.
+- `backend/.env.example` → copy to `backend/.env`: `PORT`, `NODE_ENV`, `CLIENT_ORIGINS`, `DB_*`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `OPENSKY_USERNAME`, `OPENSKY_PASSWORD`, `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET`, `FLIGHTAWARE_API_KEY`.
 - `server/.env.example` → copy to `server/.env`: port/environment, CORS origins, DB settings, optional flight/fare/email keys.
 - Backend URL used by the mobile client is resolved per platform (Expo Go host URI / emulator loopback / LAN IP → `http://…:5000`).
 
@@ -157,6 +157,21 @@ npm start                # or: node server.js
 ```
 
 Backend runs on `PORT` (default **5000**). Health check: `GET /api/health`.
+
+Core endpoints implemented:
+
+- `GET /api/health` — aggregated backend/provider/database health.
+- `GET /api/flights` — flight list (DB/demo, filters: status, origin, destination).
+- `GET /api/flights/live` — live OpenSky aircraft states (preset, limit supported).
+- `GET /api/flights/search` — Amadeus flight offers (`origin`, `destination`, `departureDate`, `returnDate`, `adults`, `cabinClass`; 503 when unconfigured).
+- `GET /api/flights/status/:identifier` — FlightAware flight status (`identifier`; 503 when unconfigured).
+- `GET /api/flights/:identifier` — single flight lookup.
+- `GET /api/airports`, `GET /api/airports/:code/schedule` — airport intelligence.
+- `GET /api/fares` — fare comparison (demo ranking data).
+- `GET /api/weather` — Open-Meteo current + forecast (`latitude`, `longitude`, `forecastDays`, `refresh`).
+- `GET /api/currency` — Open Exchange Rate conversion (`base`, `symbols`, `refresh`).
+- `GET /api/disruptions`, `GET /api/alerts` — operational intelligence.
+- `GET|POST|PATCH /api/ground-operations` — internal ground operations task workflow.
 
 ## Database Setup
 

@@ -22,4 +22,13 @@ module.exports = {
     username: process.env.OPENSKY_USERNAME || null,
     password: process.env.OPENSKY_PASSWORD || null,
   },
+  amadeus: {
+    clientId: process.env.AMADEUS_CLIENT_ID || null,
+    clientSecret: process.env.AMADEUS_CLIENT_SECRET || null,
+    baseUrl: process.env.AMADEUS_BASE_URL || 'https://test.api.amadeus.com',
+  },
+  flightAware: {
+    apiKey: process.env.FLIGHTAWARE_API_KEY || null,
+    baseUrl: process.env.FLIGHTAWARE_BASE_URL || 'https://aeroapi.flightaware.com/aeroapi',
+  },
 };

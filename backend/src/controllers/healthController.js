@@ -27,6 +27,20 @@ const getHealth = (req, res) => {
       status: 'public',
       authConfigured: false,
     },
+    amadeus: {
+      source: 'AMADEUS',
+      providerName: 'Amadeus Flight Offers API',
+      status: config.amadeus?.clientId ? 'configured' : 'not_configured',
+      authConfigured: Boolean(config.amadeus?.clientId),
+      baseUrl: config.amadeus?.baseUrl || null,
+    },
+    flightAware: {
+      source: 'FLIGHTAWARE',
+      providerName: 'FlightAware AeroAPI',
+      status: config.flightAware?.apiKey ? 'configured' : 'not_configured',
+      authConfigured: Boolean(config.flightAware?.apiKey),
+      baseUrl: config.flightAware?.baseUrl || null,
+    },
   };
 
   res.status(200).json({

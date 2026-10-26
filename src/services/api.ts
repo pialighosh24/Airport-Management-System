@@ -12,22 +12,29 @@
 
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail, WeatherSummaryResponse, CurrencyResponse } from '@/types';
+import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail, WeatherSummaryResponse, CurrencyResponse, FlightStatusResponse, GroundOperationTask } from '@/types';
 
 // Detect the best default backend URL based on platform and environment
 export function getDefaultBaseUrl(): string {
+  // 0. Explicit development override via Expo public env variable
+  //    (e.g. EXPO_PUBLIC_BACKEND_URL=http://10.86.83.4:5000 — inlined at build/start).
+  const envBackendUrl = (process.env as Record<string, string | undefined>).EXPO_PUBLIC_BACKEND_URL;
+  if (envBackendUrl && envBackendUrl.trim().length > 0) {
+    return envBackendUrl.trim().replace(/\/+$/, '');
+  }
+
   // 1. Web browser running on development machine
   if (Platform.OS === 'web') {
     return 'http://localhost:5000';
   }
 
-  // 2. Physical Android device running Expo Go on the local WiFi network:
-  // Expo provides the development computer's LAN IP in hostUri (e.g., "192.168.1.50:8082")
+  // 2. Physical Android device / development client: Expo hostUri
+  //    (scheme may be exp:// or http://; strip scheme before extracting host)
   const hostUri = Constants.expoConfig?.hostUri;
   if (hostUri) {
-    const hostIp = hostUri.split(':')[0];
-    if (hostIp && hostIp !== 'localhost' && hostIp !== '127.0.0.1') {
-      return `http://${hostIp}:5000`;
+    const host = hostUri.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '').split(':')[0];
+    if (host && host !== 'localhost' && host !== '127.0.0.1') {
+      return `http://${host}:5000`;
     }
   }
 
@@ -322,6 +329,43 @@ export const apiService = {
 
     const queryString = params.toString() ? `?${params.toString()}` : '';
     return fetchWithTimeout<ApiResponse<FlightFare[]>>(`/api/fares${queryString}`);
+  },
+
+  /**
+   * Flight Offers Search via Amadeus: GET /api/flights/search
+   * @param params origin, destination, departureDate, returnDate, adults, cabinClass
+   */
+  async getFlightOffers(params?: { origin?: string; destination?: string; departureDate?: string; returnDate?: string; adults?: number; cabinClass?: string }): Promise<any> {
+    const paramsString = new URLSearchParams();
+    if (params?.origin) paramsString.append('origin', params.origin);
+    if (params?.destination) paramsString.append('destination', params.destination);
+    if (params?.departureDate) paramsString.append('departureDate', params.departureDate);
+    if (params?.returnDate) paramsString.append('returnDate', params.returnDate);
+    if (params?.adults) paramsString.append('adults', String(params.adults));
+    if (params?.cabinClass) paramsString.append('cabinClass', params.cabinClass);
+
+    const queryString = paramsString.toString();
+    return fetchWithTimeout<any>(`/api/flights/search${queryString ? `?${queryString}` : ''}`);
+  },
+
+  /**
+   * Flight Status via FlightAware AeroAPI: GET /api/flights/status/:identifier
+   */
+  async getFlightStatus(identifier: string): Promise<FlightStatusResponse> {
+    return fetchWithTimeout<FlightStatusResponse>(`/api/flights/status/${encodeURIComponent(identifier)}`);
+  },
+
+  /**
+   * Ground Operations Tasks: GET /api/ground-operations
+   */
+  async getGroundOperations(filters?: { status?: string; type?: string; flightNumber?: string }): Promise<ApiResponse<GroundOperationTask[]>> {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.type) params.append('type', filters.type);
+    if (filters?.flightNumber) params.append('flightNumber', filters.flightNumber);
+
+    const queryString = params.toString();
+    return fetchWithTimeout<ApiResponse<GroundOperationTask[]>>(`/api/ground-operations${queryString ? `?${queryString}` : ''}`);
   },
 
   /**

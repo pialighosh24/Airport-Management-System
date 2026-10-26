@@ -8,6 +8,7 @@ const alertRoutes = require('./alertRoutes');
 const healthRoutes = require('./healthRoutes');
 const weatherRoutes = require('./weatherRoutes');
 const currencyRoutes = require('./currencyRoutes');
+const groundOperationsRoutes = require('./groundOperationsRoutes');
 
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.use('/alerts', alertRoutes);
 router.use('/health', healthRoutes);
 router.use('/weather', weatherRoutes);
 router.use('/currency', currencyRoutes);
+router.use('/ground-operations', groundOperationsRoutes);
 
 module.exports = router;
