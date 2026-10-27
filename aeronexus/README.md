@@ -14,7 +14,7 @@ The two are separate projects with their own `package.json` and `node_modules`. 
 
 ## Run it
 
-First time? Follow the step-by-step guide in [HOW_TO_RUN.md](HOW_TO_RUN.md). Short version:
+First time? The [main README](../README.md) has a step-by-step guide with troubleshooting. Short version:
 
 Needs Node 22.12+ and pnpm. Two terminals:
 
