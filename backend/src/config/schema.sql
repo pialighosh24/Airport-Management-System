@@ -163,7 +163,7 @@ CREATE TABLE IF NOT EXISTS flight_fares (
   checked_bag_included BOOLEAN NOT NULL DEFAULT FALSE,
   checked_bag_weight_kg INT DEFAULT 23,
   extra_bag_fee_usd DECIMAL(10, 2) DEFAULT 45.00,
-  cancellation_policy TEXT DEFAULT 'Standard fee applies within 24h',
+  cancellation_policy VARCHAR(255) NOT NULL DEFAULT 'Standard fee applies within 24h',
   available_seats INT NOT NULL DEFAULT 9,
   is_transparent_guaranteed BOOLEAN NOT NULL DEFAULT TRUE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

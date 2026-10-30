@@ -137,53 +137,68 @@ export interface HealthCheckResponse {
 // Weather & currency responses reuse canonical response shapes from @/types
 // (WeatherSummaryResponse, CurrencyResponse, WeatherCurrentConditions, WeatherForecast, CurrencyRates)
 
-// Core HTTP fetch helper with timeout and friendly error formatting
-async function fetchWithTimeout<T>(path: string, options: RequestInit = {}, timeoutMs = 8000): Promise<T> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+// Core HTTP fetch helper with timeout, friendly error formatting and
+// controlled retry with exponential backoff for transient network failures.
+const FETCH_MAX_RETRIES = 2;
+const FETCH_RETRY_BASE_DELAY_MS = 400;
 
+async function fetchWithTimeout<T>(path: string, options: RequestInit = {}, timeoutMs = 8000): Promise<T> {
   const url = `${activeBaseUrl}${path}`;
 
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-      headers: {
-        Accept: 'application/json',
-        'Content-Type': 'application/json',
-        ...options.headers,
-      },
-    });
+  for (let attempt = 0; ; attempt += 1) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
-    clearTimeout(timeoutId);
+    try {
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          ...options.headers,
+        },
+      });
 
-    const data = await response.json();
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      const errorMessage = data?.message || data?.error || `Server responded with HTTP ${response.status}`;
-      throw new Error(errorMessage);
-    }
+      const data = await response.json();
 
-    return data as T;
-  } catch (err: unknown) {
-    clearTimeout(timeoutId);
-
-    if (err instanceof Error) {
-      if (err.name === 'AbortError') {
-        throw new Error(
-          `Connection timed out (${timeoutMs / 1000}s). Is the backend running at ${activeBaseUrl}?`
-        );
+      if (!response.ok) {
+        const errorMessage = data?.message || data?.error || `Server responded with HTTP ${response.status}`;
+        throw new Error(errorMessage);
       }
-      // Provide actionable network advice for common mobile errors
-      if (err.message.includes('Network request failed')) {
-        throw new Error(
-          `Cannot connect to ${activeBaseUrl}. Ensure the Express backend is running and that your phone is on the same WiFi network.`
-        );
-      }
-      throw err;
-    }
 
-    throw new Error('An unknown network error occurred.');
+      return data as T;
+    } catch (err: unknown) {
+      clearTimeout(timeoutId);
+
+      const isNetworkError = err instanceof Error && err.message.includes('Network request failed');
+      const canRetry = attempt < FETCH_MAX_RETRIES && isNetworkError;
+
+      if (canRetry) {
+        // Controlled exponential backoff before retrying transient network failures.
+        await new Promise((resolve) => setTimeout(resolve, FETCH_RETRY_BASE_DELAY_MS * Math.pow(2, attempt)));
+        continue;
+      }
+
+      if (err instanceof Error) {
+        if (err.name === 'AbortError') {
+          throw new Error(
+            `Connection timed out (${timeoutMs / 1000}s). Is the backend running at ${activeBaseUrl}?`
+          );
+        }
+        // Provide actionable network advice for common mobile errors
+        if (err.message.includes('Network request failed')) {
+          throw new Error(
+            `Cannot connect to ${activeBaseUrl}. Ensure the Express backend is running and that your phone is on the same WiFi network.`
+          );
+        }
+        throw err;
+      }
+
+      throw new Error('An unknown network error occurred.');
+    }
   }
 }
 

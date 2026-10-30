@@ -49,22 +49,35 @@ export default function CommandDashboard() {
     let mounted = true;
 
     const bootstrap = async () => {
-      const weatherResponse = await apiService
-        .getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 })
-        .catch(() => null);
-      const currencyResponse = await apiService
-        .getCurrency({ base: 'USD', symbols: ['USD', 'INR'] })
-        .catch(() => null);
+      let weatherResponse: WeatherSummaryResponse | null = null;
+      let weatherFetchError: string | null = null;
+      try {
+        weatherResponse = await apiService.getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 });
+      } catch (err) {
+        weatherFetchError = err instanceof Error ? err.message : 'Weather service unavailable';
+      }
+
+      let currencyResponse: CurrencyResponse | null = null;
+      let currencyFetchError: string | null = null;
+      try {
+        currencyResponse = await apiService.getCurrency({ base: 'USD', symbols: ['USD', 'INR'] });
+      } catch (err) {
+        currencyFetchError = err instanceof Error ? err.message : 'Currency service unavailable';
+      }
 
       if (!mounted) return;
 
       if (weatherResponse) {
         setWeather(weatherResponse);
         setWeatherError(null);
+      } else {
+        setWeatherError(weatherFetchError);
       }
       if (currencyResponse) {
         setCurrency(currencyResponse);
         setCurrencyError(null);
+      } else {
+        setCurrencyError(currencyFetchError);
       }
       setWeatherLoading(false);
       setCurrencyLoading(false);
@@ -79,20 +92,32 @@ export default function CommandDashboard() {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    const weatherResponse = await apiService
-      .getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 })
-      .catch(() => null);
-    const currencyResponse = await apiService
-      .getCurrency({ base: 'USD', symbols: ['USD', 'INR'] })
-      .catch(() => null);
+    let weatherResponse: WeatherSummaryResponse | null = null;
+    let weatherFetchError: string | null = null;
+    try {
+      weatherResponse = await apiService.getWeather({ latitude: 40.7128, longitude: -74.006, forecastDays: 2 });
+    } catch (err) {
+      weatherFetchError = err instanceof Error ? err.message : 'Weather service unavailable';
+    }
+    let currencyResponse: CurrencyResponse | null = null;
+    let currencyFetchError: string | null = null;
+    try {
+      currencyResponse = await apiService.getCurrency({ base: 'USD', symbols: ['USD', 'INR'] });
+    } catch (err) {
+      currencyFetchError = err instanceof Error ? err.message : 'Currency service unavailable';
+    }
 
     if (weatherResponse) {
       setWeather(weatherResponse);
       setWeatherError(null);
+    } else {
+      setWeatherError(weatherFetchError);
     }
     if (currencyResponse) {
       setCurrency(currencyResponse);
       setCurrencyError(null);
+    } else {
+      setCurrencyError(currencyFetchError);
     }
     setWeatherLoading(false);
     setCurrencyLoading(false);
@@ -187,11 +212,11 @@ export default function CommandDashboard() {
             </View>
             <View style={styles.sourceItem}>
               <Text style={styles.sourceLabel}>Open-Meteo</Text>
-              <Badge tone={weather ? 'success' : 'warning'} label={weather ? (weather.dataFreshness.status === 'valid' ? 'FRESH' : 'STALE') : 'CHECKING'} />
+              <Badge tone={weather ? (weather.dataFreshness.status === 'valid' ? 'success' : 'warning') : weatherLoading ? 'info' : 'warning'} label={weather ? (weather.dataFreshness.status === 'valid' ? 'FRESH' : 'STALE') : weatherLoading ? 'CHECKING' : 'UNAVAILABLE'} />
             </View>
             <View style={styles.sourceItem}>
               <Text style={styles.sourceLabel}>Open ER-API</Text>
-              <Badge tone={currency ? 'success' : 'warning'} label={currency ? 'ACTIVE' : 'CHECKING'} />
+              <Badge tone={currency ? 'success' : currencyLoading ? 'info' : 'warning'} label={currency ? 'ACTIVE' : currencyLoading ? 'CHECKING' : 'UNAVAILABLE'} />
             </View>
           </View>
           <Text style={styles.confidenceNote}>

@@ -249,6 +249,30 @@ export function FlightProvider({ children }: { children: React.ReactNode }) {
     };
   }, [radarMode, airspacePreset]);
 
+  // Load operational disruption cases from the backend when reachable.
+  // Falls back to the clearly-labelled demo briefing data when the backend is unavailable.
+  useEffect(() => {
+    let mounted = true;
+
+    const loadDisruptions = async () => {
+      try {
+        const response = await apiService.getDisruptions();
+        if (!mounted) return;
+        if (response && response.success && Array.isArray(response.data)) {
+          setDisruptionCases(response.data);
+        }
+      } catch {
+        // Backend unavailable — retain existing (demo-labelled) briefing data.
+      }
+    };
+
+    void loadDisruptions();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
   const updateServerUrl = (newUrl: string) => {
     setApiBaseUrl(newUrl);
     setServerUrl(getApiBaseUrl());
