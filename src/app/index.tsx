@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Header } from '@/components/common/Header';
+import { FlightOperationsNotice } from '@/components/common/FlightOperationsNotice';
 import { AircraftRadarView } from '@/components/map/AircraftRadarView';
 import { MobileMapView } from '@/components/map/MobileMapView';
 import { FlightDetailModal } from '@/components/map/FlightDetailModal';
@@ -63,13 +63,9 @@ export default function RadarMapScreen() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
-        <Header
-          title="AeroNexus Radar"
-          subtitle={
-            radarMode === 'live'
-              ? 'Real-Time ADS-B Aircraft Telemetry Feed'
-              : 'Simulated Demo Aircraft Telemetry Feed'
-          }
+        <FlightOperationsNotice
+          serverUrl={serverUrl}
+          radarMode={radarMode}
         />
 
         {/* Live OpenSky vs Demo Fleet Mode Selector */}
