@@ -191,8 +191,8 @@ export default function LiveRadarScreen() {
               size={14}
               color={isBackendConnected ? '#34D399' : '#F87171'}
             />
-            <Text style={styles.statusEndpoint} numberOfLines={1}>
-              {serverUrl}/api/flights{radarMode === 'live' ? '/live' : ''}
+            <Text style={styles.statusText} numberOfLines={1}>
+              {isBackendConnected ? 'Flight Service Online' : 'Flight Service Offline'}
             </Text>
           </View>
 
@@ -249,7 +249,7 @@ export default function LiveRadarScreen() {
           <View style={styles.errorToast}>
             <Ionicons name="warning-outline" size={14} color="#FBBF24" />
             <Text style={styles.errorToastText} numberOfLines={1}>
-              {flightError}
+              Unable to refresh flight information. Please try again.
             </Text>
             <TouchableOpacity onPress={() => fetchFlights()} style={styles.toastRetryBtn}>
               <Text style={styles.toastRetryText}>Retry</Text>
@@ -266,7 +266,7 @@ export default function LiveRadarScreen() {
               {radarMode === 'live' ? 'Contacting OpenSky Network' : 'Loading Demo Flights'}
             </Text>
             <Text style={styles.loadingSubtitle}>
-              Requesting {radarMode === 'live' ? '/api/flights/live' : '/api/flights'} via {serverUrl}...
+              {radarMode === 'live' ? 'Contacting live flight service...' : 'Loading flight records...'}
             </Text>
           </View>
         ) : flightError && aircraftList.length === 0 ? (
@@ -276,10 +276,9 @@ export default function LiveRadarScreen() {
               <Ionicons name="cloud-offline-outline" size={36} color="#EF4444" />
             </View>
             <Text style={styles.errorTitle}>Cannot Connect to Server</Text>
-            <Text style={styles.errorMessage}>{flightError}</Text>
+            <Text style={styles.errorMessage}>Unable to refresh flight information. Please try again.</Text>
             <Text style={styles.errorHint}>
-              Make sure your Express server is running on port 5000 and that this device can reach{' '}
-              <Text style={{ color: '#38BDF8', fontWeight: '700' }}>{serverUrl}</Text>.
+              Make sure the flight service is reachable and that this device has a valid network connection. Check your backend connection and try again.
             </Text>
 
             <TouchableOpacity style={styles.retryBtn} onPress={() => fetchFlights()}>
@@ -300,7 +299,7 @@ export default function LiveRadarScreen() {
             <Ionicons name="airplane-outline" size={40} color="#64748B" />
             <Text style={styles.emptyTitle}>No Flight Records</Text>
             <Text style={styles.emptySubtitle}>
-              The backend returned zero flight records for the current filter.
+              No flight records were returned for the current filter.
             </Text>
             <TouchableOpacity style={styles.retryBtn} onPress={() => fetchFlights()}>
               <Text style={styles.retryBtnText}>Reload Flights</Text>
@@ -353,7 +352,7 @@ const styles = StyleSheet.create({
     marginRight: 10,
     gap: 6,
   },
-  statusEndpoint: {
+  statusText: {
     fontSize: 11,
     color: '#64748B',
     fontWeight: '600',

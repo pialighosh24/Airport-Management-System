@@ -12,14 +12,13 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { Header } from '@/components/common/Header';
 import { StatCard } from '@/components/ui/StatCard';
 import { Badge } from '@/components/ui/Badge';
 import { useFlight } from '@/context/FlightContext';
 import { apiService } from '@/services/api';
 import { buildDisruptionBriefing } from '@/utils/disruptionBriefing';
 import { WeatherSummaryResponse, CurrencyResponse } from '@/types';
-import { Palette } from '@/constants/theme';
+import { Palette, Elevation } from '@/constants/theme';
 
 export default function CommandDashboard() {
   const {
@@ -138,8 +137,6 @@ export default function CommandDashboard() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <Header title="AeroNexus" subtitle="Command Centre" />
-
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.content}
@@ -147,6 +144,16 @@ export default function CommandDashboard() {
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.primary} />
         }
       >
+        {/* Flight Operations Notice */}
+        <View style={styles.noticeCard}>
+          <View style={styles.noticeHeader}>
+            <View style={styles.noticeIconCircle}>
+              <Ionicons name="megaphone" size={16} color={Palette.primary} />
+            </View>
+            <Text style={styles.noticeTitle}>Flight Operations Notice</Text>
+          </View>
+        </View>
+
         {/* Operational snapshot strip */}
         <View style={styles.snapshotRow}>
           <View style={styles.snapshotCard}>
@@ -168,7 +175,7 @@ export default function CommandDashboard() {
           <StatCard
             title="Live Fleet"
             value={isLoadingFlights ? '…' : String(aircraftList.length)}
-            subtitle={isBackendConnected ? (radarMode === 'live' ? 'OpenSky telemetry stream connected' : 'Demo fleet active') : 'Backend offline'}
+            subtitle={isBackendConnected ? (radarMode === 'live' ? 'OpenSky telemetry stream connected' : 'Demo fleet active') : 'Live fleet unavailable'}
             icon="airplane"
             tone="primary"
             onPress={() => router.push('/radar')}
@@ -290,10 +297,10 @@ export default function CommandDashboard() {
           <TouchableOpacity style={styles.backendRow} onPress={() => fetchFlights()} disabled={isLoadingFlights}>
             {isLoadingFlights ? <ActivityIndicator size="small" color={Palette.primary} /> : <Ionicons name="refresh" size={14} color={Palette.primary} />}
             <Text style={styles.backendText}>
-              Backend: {isBackendConnected ? 'Operational' : 'Unreachable'} • {isLoadingFlights ? 'Syncing' : 'Synced'}
+              {isLoadingFlights ? 'Updating flight information...' : isBackendConnected ? 'Flight Information Ready' : 'Flight Information Unavailable'}
             </Text>
           </TouchableOpacity>
-          {flightError ? <Text style={styles.backendError}>{flightError}</Text> : null}
+          {flightError && !isBackendConnected ? <Text style={styles.backendError}>Flight information could not be reached. Please check your connection and try again.</Text> : null}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -311,6 +318,45 @@ const styles = StyleSheet.create({
   content: {
     paddingBottom: 24,
     paddingHorizontal: 16,
+  },
+  // Flight Operations Notice
+  noticeCard: {
+    backgroundColor: Palette.surface,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Palette.border,
+    padding: 12,
+    marginBottom: 12,
+    ...Platform.select({
+      ios: {
+        shadowColor: '#0F172A',
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.05,
+        shadowRadius: 2,
+      },
+      default: { elevation: Elevation.card },
+    }),
+  },
+  noticeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  noticeIconCircle: {
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: Palette.primaryLight,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 8,
+  },
+  noticeTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: Palette.textPrimary,
+    letterSpacing: 0.3,
+    flexShrink: 1,
   },
   snapshotRow: {
     flexDirection: 'row',

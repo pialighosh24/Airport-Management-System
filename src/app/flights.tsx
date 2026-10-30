@@ -81,7 +81,7 @@ export default function FlightIntelligenceScreen() {
           <Text style={styles.sourceText}>
             {radarMode === 'live'
               ? liveMetadata?.providerName ?? 'OpenSky Network'
-              : 'Demo Fleet'} • {isBackendConnected ? 'Backend reachable' : 'Backend unreachable'}
+              : 'Demo Fleet'} • {isBackendConnected ? 'Service Online' : 'Service Offline'}
           </Text>
         </View>
 

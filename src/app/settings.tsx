@@ -68,9 +68,9 @@ export default function SettingsScreen() {
             <Text style={styles.cardTitle}>Health & Connectivity</Text>
           </View>
           <Text style={styles.statusLine}>
-            Current status: <Text style={{ fontWeight: '800', color: isBackendConnected ? Palette.successText : Palette.dangerText }}>{isBackendConnected ? 'OPERATIONAL' : 'UNREACHABLE'}</Text>
+            Current status: <Text style={{ fontWeight: '800', color: isBackendConnected ? Palette.successText : Palette.dangerText }}>{isBackendConnected ? 'Connected' : 'Disconnected'}</Text>
           </Text>
-          <Text style={styles.statusLine}>Probe status: {healthStatus.toUpperCase()}</Text>
+          <Text style={styles.statusLine}>Connection check: {healthStatus === 'healthy' ? 'Passed' : healthStatus === 'unreachable' ? 'Failed' : 'Pending'}</Text>
         </View>
 
         <View style={styles.card}>

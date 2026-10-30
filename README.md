@@ -1,245 +1,449 @@
 # AeroNexus — Smart Airport Operations, Flight Intelligence & Passenger Assistance Platform
 
-**AeroNexus** is a professional aviation command-centre mobile application built for operational situational awareness: live aircraft tracking, airport intelligence, flight intelligence, schedules and fares, weather, currency, disruptions, and alerts — wrapped in a polished midnight-navy command-centre interface.
+**AeroNexus** is a professional aviation command-centre mobile application built for operational situational awareness: live aircraft tracking, airport intelligence, flight intelligence, schedules and fares, weather, currency, disruptions, alerts, and staff operations — wrapped in a polished operational interface.
 
 Built as a BCA academic group project, it demonstrates a complete real-world architecture: an Expo/React Native mobile client, a Node.js/Express REST backend, multiple live external data providers, caching, error handling, and an explicitly-labelled demo fallback.
+
+**Current branch:** `feature/dashboard` · **Expo SDK:** 58 · **Mobile runtime:** React Native 0.88 / Expo Go (Android) · **Backend:** Node.js + Express (port 5000) · **Database:** MySQL 8.0 (demo fallback when unavailable)
 
 ---
 
 ## Table of Contents
 
-1. [Overview](#overview)
-2. [Features](#features)
-3. [Architecture](#architecture)
-4. [Technology Stack](#technology-stack)
-5. [API Inventory](#api-inventory)
-6. [Environment Variables](#environment-variables)
-7. [Backend Setup](#backend-setup)
-8. [Database Setup](#database-setup)
-9. [Mobile Setup](#mobile-setup)
-10. [Demo Mode Behaviour](#demo-mode-behaviour)
-11. [Testing](#testing)
-12. [Troubleshooting](#troubleshooting)
-13. [Known Limitations and Future Enhancements](#known-limitations-and-future-enhancements)
-14. [BCA Practical Examination — Demonstration Checklist](#bca-practical-examination--demonstration-checklist)
+1. [Project Overview and Objectives](#1-project-overview-and-objectives)
+2. [Features](#2-features)
+3. [Technology Stack](#3-technology-stack)
+4. [System Architecture](#4-system-architecture)
+5. [Folder Structure](#5-folder-structure)
+6. [Database Schema](#6-database-schema)
+7. [API Endpoint Documentation](#7-api-endpoint-documentation)
+8. [Environment Setup](#8-environment-setup)
+9. [Installation](#9-installation)
+10. [Startup Instructions](#10-startup-instructions)
+11. [Testing](#11-testing)
+12. [Known Limitations](#12-known-limitations)
+13. [Screenshots](#13-screenshots)
+14. [Future Enhancements](#14-future-enhancements)
+15. [Credits and Licence](#15-credits-and-licence)
+16. [Project Demonstration Script](#16-project-demonstration-script)
+17. [Feature-by-Feature Demonstration Checklist](#17-feature-by-feature-demonstration-checklist)
+18. [Technical Communication: Frontend ↔ Backend ↔ MySQL ↔ External APIs](#18-technical-communication-frontend--backend--mysql--external-apis)
 
 ---
 
-## Overview
+## 1. Project Overview and Objectives
+
+### Overview
 
 The application is designed around a **command-centre operator workflow**:
 
-- **What is happening right now** at the airport(s) of interest (flights, delays, weather, alerts).
+- **What is happening right now** at the tracked airports (flights, delays, weather, alerts).
 - **Where aircraft are** and where they are going (live telemetry + heading indicators).
 - **How the operation is performing** (delays, congestion, disruption briefing).
 - **What should the user do next** (alerts, actionable operational guidance).
 
-Every screen distinguishes between **live data**, **cached data**, and **demo data** via a data-freshness indicator and source attribution, so a live-data label never accompanies demo values.
+Every screen distinguishes between **live data**, **cached data**, and **demo data** via data-freshness indicators and source attribution, so a live-data label never accompanies demo values.
 
-## Features
+### Objectives
 
-### A. Aviation Command Dashboard
-- Operational overview: total flights, active flights, delayed flights, airport status, operational alerts.
-- Live-data freshness indicators and data-source labels.
-- Search and quick actions; recent operational events.
-- Charts/insights for flight activity, delays, or airport performance where reliable data exists.
-- Live values vs. demo values clearly distinguished.
-
-### B. Flight Intelligence and Live Aircraft Tracking
-- Flight search and filtering.
-- Flight identifier, airline (when sourced), aircraft, altitude, speed, heading, origin/destination (when known), data freshness.
-- **OpenSky Network** live state vectors (`/api/states/all` via backend proxy).
-- Custom radar map view with heading indicators and airport markers (no third-party map SDK required; avoids Expo Go map black-screen risk).
-- Flight detail panel and list/map views.
-- Refresh controls, TTL caching, loading/error/retry states, rate-limit handling.
-- No invented telemetry; fallbacks for unavailable map configuration.
-
-### C. Airport Intelligence
-- Search by IATA, ICAO, name, location.
-- Verified coordinates, elevation, timezone, metadata.
-- Weather and available flight schedules.
-- Detail pages, operational status, filters; local registry + external enrichment with source attribution.
-
-### D. Flight Schedules and Fare Intelligence
-- **Amadeus** flight offers (where API plan/credentials permit) and **FlightAware AeroAPI** schedule/movement data (where supported).
-- Fare breakdowns, currency, baggage info, booking links — only when supplied/verified by the source.
-- Search, sorting, filtering; clear labelling of test/sandbox, cached, estimates, live responses.
-
-### E. Weather Intelligence
-- **Open-Meteo** forecasts and current conditions.
-- Temperature, wind, precipitation, visibility where available; forecast timestamp and units.
-- Defensible operational weather warnings (not presented as official aviation meteorology).
-
-### F. Currency Intelligence
-- **Open ER-API** exchange rates (INR, USD where available).
-- TTL caching with timestamps, failure handling, rate-limit control.
-- Indicative, not guaranteed transaction rates.
-
-### G. Airport Operations and Turnaround Management
-- Practical turnaround workflow with configurable milestones.
-- Milestone status, timestamps, pending tasks, delay indicators.
-- Role-appropriate operations views; demo workflows clearly labelled when no real ops data source exists.
-
-### H. Alerts and Notifications
-- Operational alerts for delays, weather conditions, configurable events.
-- Severity, timestamps, acknowledgement state, filters.
-- Notification preferences; push delivery only labelled when actually delivered.
-
-### I. Additional Original Features (Differentiators)
-1. **Data Confidence Centre** — source, retrieval time, freshness, confidence limitations for key data.
-2. **Smart Disruption Briefing** — concise rule-based summaries from actual flight, weather, and alert records.
-
-Both were implemented and are reachable from the Command Dashboard.
+1. Deliver a mobile-first flight tracking and operations command centre.
+2. Aggregate live external data (OpenSky, Open-Meteo, Open ER-API, FreeAirportDB, Amadeus, FlightAware) through a single backend.
+3. Demonstrate a complete full-stack architecture: Expo/React Native client → Express REST backend → MySQL → external providers.
+4. Maintain data integrity: never mix live and demo sources; always surface freshness/confidence.
+5. Provide graceful loading, error, empty, retry, and offline states.
 
 ---
 
-## Architecture
+## 2. Features
+
+### A. Aviation Command Dashboard
+
+- Operational snapshot strip: **Aircraft In Scope**, **En Route Now**, **Open Disruptions**.
+- KPI stat cards: **Live Fleet**, **Weather Outlook**, **FX Indicative**, **Alerts**.
+- **Data Confidence** panel with per-source badges (OpenSky / Open-Meteo / Open ER-API) and honest status (CONNECTED / FRESH / ACTIVE / CHECKING / UNAVAILABLE / STALE).
+- **Disruption Briefing** built from actual disruption cases via `buildDisruptionBriefing`.
+- **Operations** quick-action tiles (Live Radar, Airports, Fares, Flight Intel, Staff Ops, Settings).
+- Backend status strip with manual refresh; pull-to-refresh on the dashboard.
+- Weather and currency are fetched through the backend with client-side TTL caching.
+
+### B. Interactive Live Radar
+
+- **Live OpenSky** vs **Demo Fleet** mode toggle (REAL / SIMULATED tags).
+- Airspace preset selector: **Central Europe** / **US East Coast**.
+- Backend status bar: endpoint display, host configuration, refresh, error toast with retry.
+- Loading / error / empty / success states.
+- Flight detail modal with telemetry details and watchlist save.
+
+### C. Airport Intelligence
+
+- Airport search via **FreeAirportDB** (IATA/ICAO/name) with quick-search chips and retry/empty states.
+- Flight timetables: hub chips, departure/arrival toggle, schedule text filter, METAR banner with delay indicator, demo fallback.
+
+### D. Flight Intelligence
+
+- Aircraft telemetry list (flight number, callsign, route, altitude, ground speed, heading) with `FreshnessIndicator`.
+- Pull-to-refresh and retry.
+
+### E. Fares
+
+- Fare comparison list with sorting (Best Value / Cheapest / Fastest) and breakdown modal.
+- Local demo fares fallback with explicit `SIMULATED DEMO DATA` labelling.
+- Live Amadeus offers via backend (`/api/flights/search`) — currently **503 Unconfigured** (honest error state).
+
+### F. Weather Intelligence
+
+- Backend proxy to **Open-Meteo** (`/api/weather?latitude&longitude&forecastDays&refresh`).
+- Current conditions + forecast, `dataFreshness`, TTL cache, error/unavailable states.
+
+### G. Currency Intelligence
+
+- Backend proxy to **Open Exchange Rate API** (`/api/currency?base&symbols`).
+- Indicative rates (INR/USD), TTL cache, disclaimer, error/unavailable states.
+
+### H. Alerts, Watchlist and Notifications
+
+- Email notification channel (edit + validation, alert preferences, threshold pills).
+- Watchlist: save/unsave flights, notification timeline, simulate alert, dismiss, **mark read / mark all read**.
+
+### I. Staff Operations
+
+- Staff PIN authentication (demo PINs: `7700`, `1234`, `admin`).
+- Disruption metrics, status filters, create disruption case modal.
+
+### J. Settings
+
+- Backend server URL configuration with apply + health probe.
+- Data source overview.
+
+### Original Differentiators
+
+1. **Data Confidence Centre** — source, retrieval time, freshness, confidence limitations for key data.
+2. **Smart Disruption Briefing** — concise rule-based briefing derived from actual disruption records.
+
+Both are reachable from the Command Dashboard.
+
+---
+
+## 3. Technology Stack
+
+| Layer | Technology |
+|---|---|
+| Mobile client | Expo SDK 58, React Native 0.88, Expo Router 58, TypeScript, React 19.3, `@expo/vector-icons`, React Native Safe Area Context, react-native-reanimated/gesture-handler/screens |
+| Backend | Node.js, Express 4, `mysql2`, `cors`, `dotenv`, `node --test` |
+| Database | MySQL 8.0 (with standalone demo fallback) |
+| External APIs | OpenSky Network (live ADS-B), FreeAirportDB (airports), Open-Meteo (weather), Open ER-API (FX), Amadeus (offers), FlightAware AeroAPI (status) |
+| Mapping | Custom radar view (no third-party map SDK) |
+| Validation/QA | TypeScript, Expo Lint, Expo Doctor, backend + server test suites |
+
+---
+
+## 4. System Architecture
 
 ```
-┌─────────────────────────── Mobile client (Expo SDK 58 / RN 0.88 / Expo Router) ───────────────────────────┐
-│  src/app (routes) · src/components · src/services (TTL caches, health-aware base URL) · src/context        │
-└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-                                       │  REST (JSON) · base http://localhost:5000 (auto LAN/emulator aware)
-                                       ▼
-┌──────────────────────────────────────────── AeroNexus Backend (Node.js + Express, backend/) ─────────────┐
-│  /api/health · /api/flights · /api/flights/live · /api/airports · /api/weather · /api/currency          │
-│  /api/fares · /api/disruptions · /api/alerts · /api/auth                                                          │
-│  → backend/src/services (OpenSky, Open-Meteo, Open ER-API, demo data) → backend/src/models (MySQL/demo)     │
-└────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
-                                       │  outbound provider calls (server-side only; keys stay backend-side)
-                                       ▼
-          OpenSky · FreeAirportDB · Open-Meteo · Open ER-API · Amadeus · FlightAware · (optional aviationstack/weather)
-
+┌────────────────────────────────────────── Mobile client (Expo SDK 58 / RN 0.88 / Expo Router) ──────────────────────────┐
+│  src/app (routes) · src/components · src/services (TTL caches, health-aware base URL) · src/context                      │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                         │  REST (JSON) · base http://localhost:5000 (auto LAN/emulator aware)
+                                         ▼
+┌──────────────────────────────────────────── AeroNexus Backend (Node.js + Express, backend/) ─────────────────────┐
+│  /api/health · /api/auth · /api/flights · /api/airports · /api/fares · /api/disruptions · /api/alerts                     │
+│  /api/weather · /api/currency · /api/ground-operations                                                                     │
+│        → backend/src/services (OpenSky, Open-Meteo, Open ER-API, demo data) → backend/src/models (MySQL/demo)            │
+└────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+                                         │  outbound provider calls (server-side only; keys stay backend-side)
+                                         ▼
+       OpenSky · FreeAirportDB · Open-Meteo · Open ER-API · Amadeus · FlightAware · (optional others)
 ```
 
-- **Mobile client**: Expo Router file-based routes (`src/app/`), shared components/services/hooks outside routes (`src/`).
+- **Mobile client**: Expo Router file-based routes (`src/app/`), shared code in `src/` (components, services, context, hooks, utils, types, constants).
 - **Authoritative backend**: `backend/` (Express app, routes, controllers, services, models, middleware, tests).
-- **Compatibility bridge**: `server/` forwards to the unified backend (`backend/server`). The backend is authoritative; no competing backend should be run.
+- **Compatibility bridge**: `server/` re-exports/starts the unified backend (`backend/server`).
+- **External APIs**: called server-side only; credentials stay backend-side.
 
-## Technology Stack
+---
 
-- **Mobile**: React Native 0.88, Expo SDK 58, Expo Router 58, TypeScript, React 19.3, `@expo/vector-icons`, React Native Safe Area Context.
-- **Backend**: Node.js, Express, `node --test` unit tests.
-- **Database**: MySQL 8.0 (with standalone demo fallback).
-- **External APIs**: OpenSky Network, FreeAirportDB, Open-Meteo, Open ER-API, Amadeus, FlightAware AeroAPI, optional aviationstack / aviationweather.gov.
-- **Mapping**: custom radar view (no third-party map SDK dependency).
+## 5. Folder Structure
 
-## API Inventory
+```
+AeroNexus-Team/
+├── app.json / package.json / tsconfig.json / eslint.config.js / metro.config.js
+├── assets/                     # App icons, logos, splash assets
+├── scripts/                     # Expo reset helper
+├── src/                         # Mobile client
+│   ├── app/                     # Expo Router screens (file-based routes)
+│   ├── components/              # Shared components (airports/, fares/, map/, staff/, ui/, common/)
+│   ├── constants/               # Design tokens (Palette, Radii, Elevation, Spacing, Fonts)
+│   ├── context/                 # FlightContext (fleet, alerts, disruptions, staff state)
+│   ├── data/                    # Demo datasets (flights, airports, disruptions, fares)
+│   ├── hooks/                   # Theme/color-scheme hooks
+│   ├── services/                # api.ts (fetch w/ timeout+retry, TTL caches, endpoint methods)
+│   ├── types/                   # Shared TypeScript interfaces
+│   ├── utils/                   # disruptionBriefing.ts
+│   └── global.css
+├── backend/                     # Express backend (authoritative)
+│   ├── server.js
+│   ├── src/
+│   │   ├── config/   (schema.sql, database.js, index.js)
+│   │   ├── controllers/ (auth, flight, flightAware, amadeus, airport, fare, weather, currency, disruption, alert, groundOperations, health)
+│   │   ├── data/     (demoData.js)
+│   │   ├── middleware/ (auth, error, notFound)
+│   │   ├── models/    (User, Flight, Disruption, Alert, Notification, FlightFare)
+│   │   ├── routes/    (health, auth, flights, airports, fares, weather, currency, disruptions, alerts, groundOperations)
+│   │   ├── scripts/   (seed, verifyDb)
+│   │   └── services/  (openSky, weather, currency, airport, fare, amadeus, flightAware, groundOperations, disruption, alert)
+│   └── tests/         (apiIntegrations, auth)
+└── server/                      # Compatibility bridge / standalone server entry
+```
 
-| Capability | Provider | Purpose | Notes |
-|---|---|---|---|
-| Live aircraft telemetry | OpenSky Network | `/api/states/all` proxy | Optional basic auth; anonymous ≈1 req/10s; backend-cached |
-| Airport data | FreeAirportDB | Airport enrichment | Coordinates, elevation, timezone, metadata; source attribution |
-| Weather | Open-Meteo | Forecasts/current conditions | Units + forecast timestamp; indicative warnings only |
-| Exchange rates | Open ER-API | Currency conversion | Indicative rates; TTL cache; INR/USD supported |
-| Flight offers | Amadeus | Fare intelligence | Test/sandbox; requires valid API plan + credentials |
-| Flight movements | FlightAware AeroAPI | Schedule/movement data | Supported endpoints only |
-| Alerts/health | Internal | Operational alerts, health | Auth + health endpoints |
+---
 
-All provider credentials remain **server-side** (env vars); the mobile client calls only the AeroNexus backend.
+## 6. Database Schema
 
-## Environment Variables
+MySQL 8.0 database `aeronexus` (`backend/src/config/schema.sql`) with tables:
 
-- `backend/.env.example` → copy to `backend/.env`: `PORT`, `NODE_ENV`, `CLIENT_ORIGINS`, `DB_*`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `OPENSKY_USERNAME`, `OPENSKY_PASSWORD`, `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET`, `FLIGHTAWARE_API_KEY`.
-- `server/.env.example` → copy to `server/.env`: port/environment, CORS origins, DB settings, optional flight/fare/email keys.
-- Backend URL used by the mobile client is resolved per platform (Expo Go host URI / emulator loopback / LAN IP → `http://…:5000`).
+- `users` — authentication & role-based access (passenger/staff/admin, staff PIN).
+- `flights` — flight telemetry & freshness tracking (callsign, flight number, airline, route, position, altitude, speed, heading).
+- `disruptions` — disruption cases (flight, route, incident type, severity, impacted passengers, status, action plan).
+- `flight_alerts` — alert/watchlist records.
+- `notifications` — notification timeline records.
+- `flight_fares` — fare comparison records.
 
-See `backend/.env.example` and `server/.env.example` for the authoritative lists. **No real secrets are committed** (`.env` is git-ignored; `.env.example` holds placeholders only).
+When MySQL is unavailable, the backend runs in **standalone demo mode** using deterministic demo datasets (clearly labelled).
 
-## Backend Setup
+---
+
+## 7. API Endpoint Documentation
+
+Base URL: backend origin (default `http://localhost:5000`). Mobile base URL resolution: `EXPO_PUBLIC_BACKEND_URL` override → Expo Go host URI → emulator loopback (`10.0.2.2`) → localhost.
+
+Response envelope (shared): `{ success, isDemo?, isLive?, source?, airspace?, disclaimer?, count?, totalInAirspace?, data, error?, message?, warning?, fromCache? }`.
+
+| Method | Path | Purpose | Provider / Source | Verified status |
+|---|---|---|---|---|
+| GET | `/api/health` | Aggregated backend/provider/DB health | Internal | ✅ 200 healthy |
+| POST | `/api/auth/register` | User registration | Internal | — |
+| POST | `/api/auth/login` | User login | Internal | — |
+| POST | `/api/auth/staff-login` | Staff PIN login | Internal | — |
+| GET | `/api/auth/me` | Current user | Internal | ✅ 401 (guard verified) |
+| GET | `/api/flights` | Flight list (filters: status/origin/destination) | MySQL/demo | ✅ 200 (demo) |
+| GET | `/api/flights/live` | Live OpenSky states (preset/limit) | OpenSky | ✅ 200 (live) |
+| GET | `/api/flights/search` | Amadeus flight offers | Amadeus | ✅ 503 unconfigured |
+| GET | `/api/flights/status/:identifier` | FlightAware status | FlightAware | ✅ 503 unconfigured |
+| GET | `/api/flights/:identifier` | Single flight lookup | MySQL/demo | ✅ 200 (demo) |
+| GET | `/api/airports` | Airport search | FreeAirportDB | ✅ 200 |
+| GET | `/api/airports/:code/schedule` | Airport timetable | MySQL/demo | ✅ 200 (demo) |
+| GET | `/api/fares` | Fare comparison | MySQL/demo | ✅ 200 (demo) |
+| GET | `/api/disruptions` | Disruption list | MySQL/demo | ✅ 200 |
+| GET | `/api/disruptions/:id` | Disruption detail | MySQL/demo | ✅ 200 |
+| POST | `/api/disruptions` | Create disruption | Internal (auth) | — |
+| PATCH | `/api/disruptions/:id` | Update disruption | Internal (auth) | — |
+| GET | `/api/alerts` | Alerts + watchlist + notifications | Internal | ✅ 200 |
+| POST | `/api/alerts/watchlist` | Save flight to watchlist | Internal | — |
+| DELETE | `/api/alerts/watchlist/:flightNumber` | Remove from watchlist | Internal | ✅ 200 (tested + restored) |
+| POST | `/api/alerts/trigger-simulation` | Simulate alert | Internal | — |
+| PATCH | `/api/alerts/notifications/:id/read` | Mark notification read | Internal | — |
+| GET | `/api/weather` | Open-Meteo current + forecast | Open-Meteo | ✅ 200 (fresh) |
+| GET | `/api/currency` | Open ER-API rates | Open ER-API | ✅ 200 (live) |
+| GET | `/api/ground-operations` | Ground tasks list | Internal | ✅ 200 |
+| GET | `/api/ground-operations/:id` | Ground task detail | Internal | — |
+| POST | `/api/ground-operations` | Create ground task | Internal | — |
+| PATCH | `/api/ground-operations/:id` | Update ground task | Internal | — |
+
+---
+
+## 8. Environment Setup
+
+Placeholder-only values (never commit real secrets).
+
+### Backend (`backend/.env.example` → `backend/.env`)
+
+```
+NODE_ENV=development
+PORT=5000
+CLIENT_ORIGINS=http://localhost:8081,http://localhost:19006,http://localhost:8082
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=
+DB_NAME=aeronexus
+DB_CONNECTION_LIMIT=10
+JWT_SECRET=<your-jwt-secret>
+JWT_EXPIRES_IN=7d
+OPENSKY_USERNAME=
+OPENSKY_PASSWORD=
+AMADEUS_CLIENT_ID=
+AMADEUS_CLIENT_SECRET=
+AMADEUS_BASE_URL=https://test.api.amadeus.com
+FLIGHTAWARE_API_KEY=
+FLIGHTAWARE_BASE_URL=https://aeroapi.flightaware.com/aeroapi
+```
+
+### Server bridge (`server/.env.example` → `server/.env`)
+
+```
+PORT=5000
+NODE_ENV=development
+CLIENT_ORIGIN=http://localhost:8081,http://localhost:8082,http://localhost:19006
+DB_HOST=localhost
+DB_PORT=3306
+DB_USER=root
+DB_PASSWORD=<your_mysql_password_here>
+DB_NAME=aeronexus
+DB_CONNECTION_LIMIT=10
+FLIGHT_DATA_API_KEY=<your_flight_api_key_here>
+FLIGHT_DATA_API_BASE_URL=https://api.example.com/v1
+OPENSKY_USERNAME=
+OPENSKY_PASSWORD=
+FLIGHT_FARE_API_KEY=<your_flight_fare_api_key_here>
+AMADEUS_CLIENT_ID=
+AMADEUS_CLIENT_SECRET=
+AMADEUS_BASE_URL=https://test.api.amadeus.com
+FLIGHTAWARE_API_KEY=
+FLIGHTAWARE_BASE_URL=https://aeroapi.flightaware.com/aeroapi
+EMAIL_SERVICE_API_KEY=<your_email_service_api_key_here>
+EMAIL_FROM_ADDRESS=alerts@aeronexus.aero
+```
+
+### Mobile client
+
+`EXPO_PUBLIC_BACKEND_URL` (dev override) — placeholder: `http://10.86.83.4:5000` (LAN IP of dev machine). Falls back to Expo Go host URI / emulator loopback / localhost.
+
+---
+
+## 9. Installation
 
 ```bash
+# Root (mobile)
+npx expo install <package>        # SDK-aligned installs
+npm install
+
+# Backend
 cd backend
 npm install
-cp .env.example .env     # then fill values
-npm test                  # backend unit tests (node --test)
-npm start                # or: node server.js
+cp .env.example .env               # fill placeholders
+
+# Server bridge
+cd server
+npm install
+cp .env.example .env               # fill placeholders
 ```
 
-Backend runs on `PORT` (default **5000**). Health check: `GET /api/health`.
+---
 
-Core endpoints implemented:
-
-- `GET /api/health` — aggregated backend/provider/database health.
-- `GET /api/flights` — flight list (DB/demo, filters: status, origin, destination).
-- `GET /api/flights/live` — live OpenSky aircraft states (preset, limit supported).
-- `GET /api/flights/search` — Amadeus flight offers (`origin`, `destination`, `departureDate`, `returnDate`, `adults`, `cabinClass`; 503 when unconfigured).
-- `GET /api/flights/status/:identifier` — FlightAware flight status (`identifier`; 503 when unconfigured).
-- `GET /api/flights/:identifier` — single flight lookup.
-- `GET /api/airports`, `GET /api/airports/:code/schedule` — airport intelligence.
-- `GET /api/fares` — fare comparison (demo ranking data).
-- `GET /api/weather` — Open-Meteo current + forecast (`latitude`, `longitude`, `forecastDays`, `refresh`).
-- `GET /api/currency` — Open Exchange Rate conversion (`base`, `symbols`, `refresh`).
-- `GET /api/disruptions`, `GET /api/alerts` — operational intelligence.
-- `GET|POST|PATCH /api/ground-operations` — internal ground operations task workflow.
-
-## Database Setup
-
-- MySQL 8.0 connection settings in backend env (`DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`).
-- Schema: `backend/src/config/schema.sql`; models under `backend/src/models`.
-- If DB is unavailable, the backend runs in **standalone demo mode** with predictable demo data; connection status is surfaced via health/diagnostics.
-
-## Mobile Setup
+## 10. Startup Instructions
 
 ```bash
-npx expo install        # keep SDK-pinned deps aligned
+# Backend (from backend/)
+npm start                          # node server.js  -> http://localhost:5000
+
+# Mobile (from project root)
 npx expo start --clear
 ```
 
-- **Expo Go**: install the Expo Go build for **SDK 58** on Android (via expo.dev/go or `npx expo-go download android 58`), restart `npx expo start`, scan the QR code.
-- **Android emulator**: backend reachable via `http://10.0.2.2:5000`.
-- **Physical Android phone**: same Wi-Fi network; backend URL auto-resolves via Expo host URI (LAN IP).
+- Expo Go: install Expo Go SDK 58 build on Android; scan QR.
+- Emulator: backend at `http://10.0.2.2:5000`.
+- Physical phone: same Wi-Fi; backend URL via Expo host URI / `EXPO_PUBLIC_BACKEND_URL`.
 
-## Demo Mode Behaviour
+---
 
-- External services that are unconfigured/unreachable fall back to demo data.
-- Demo values are **never** mixed with live labels; the Data Confidence Centre and freshness indicators make the distinction explicit.
-- Weather/currency/fares degrade gracefully with clear status.
-
-## Testing
+## 11. Testing
 
 ```bash
 npx tsc --noEmit
 npx expo lint
 npx expo-doctor@latest
-cd backend && npm test
+cd backend && npm test        # 11/11 passed
+cd ../server && npm test      # 63/63 passed
 ```
 
-Backend: `63/63` tests passing (auth, health, flights, airports, weather, currency, openSky, fares, disruptions, alerts, API).
+Backend syntax: `node --check` on all backend/server JS files.
 
-## Troubleshooting
+---
 
-- Metro cache: `npx expo start --clear`.
-- Expo Go version mismatch: install Expo Go SDK 58 build.
-- Backend unreachable: verify `http://localhost:5000/api/health` on device (emulator → `10.0.2.2`, physical → LAN IP).
-- CORS: set `CLIENT_ORIGINS` to your Expo web/dev origins.
+## 12. Known Limitations
 
-## Known Limitations and Future Enhancements
+- MySQL unavailable in current environment → demo fallback.
+- Amadeus / FlightAware unconfigured → honest 503 states.
+- No push notifications wired to real delivery.
+- No charts implementation.
+- Debounced search not implemented.
+- Backend-backed watchlist persistence not wired from Alerts UI.
+- Default JWT secret fallback in backend config (dev).
+- Or orphaned Expo template screen (`src/app/explore.tsx`) not routed.
 
-- Live flight telemetry depends on OpenSky availability/quotas; no fallback invented data.
-- Map is a custom radar view (Expo Go friendly) — no third-party tile provider.
-- Push notifications optional/not configured.
-- Amadeus/FlightAware require provider-side credentials/plans.
+---
 
-## BCA Practical Examination — Demonstration Checklist
+## 13. Screenshots
 
-- [ ] Backend starts and `/api/health` returns OK.
-- [ ] Dashboard loads with live/demo indicators.
-- [ ] Live radar refreshes with OpenSky (or demo) data.
-- [ ] Airport search returns verified data.
-- [ ] Weather and currency load with caching.
-- [ ] Fares/disruptions/alerts screens reachable.
+No UI screenshots have been captured as part of this project yet; the `assets/` folder contains only app icons/logo/splash assets and template images — **no product screenshots are included**.
+
+---
+
+## 14. Future Enhancements
+
+- MySQL provisioning + live ops data.
+- Amadeus/FlightAware credential activation.
+- Charts / price-history.
+- Deep flight search (number, status, airports, times, delays, airline).
+- Debounced search.
+- Backend-backed watchlist persistence.
+- Push notifications.
+- User profile screen.
+- Dark theme enforcement (theme tokens exist).
+
+---
+
+## 15. Credits and Licence
+
+- **License file:** MIT License (`LICENSE`) — inherited from the Expo/React Native template attribution (`Copyright (c) 2015-present 650 Industries, Inc. (aka Expo)`).
+- **Libraries:** Expo, React Native, Expo Router, TypeScript, React, Express, MySQL, OpenSky, Open-Meteo, Open ER-API, Amadeus, FlightAware, `@expo/vector-icons`, React Native Reanimated/Gesture Handler/Screens/Safe Area Context.
+
+---
+
+## 16. Project Demonstration Script
+
+```text
+1. Start backend:  cd backend && npm start
+2. Start mobile:   npx expo start --clear  → scan Expo Go (SDK 58) QR
+3. Open Dashboard:
+      - Backend badge: BACKEND 200
+      - Snapshot: Aircraft In Scope / En Route / Open Disruptions
+      - KPI cards: Live Fleet, Weather (14°C Clear sky), FX (₹95.29), Alerts
+      - Data Confidence: OpenSky Connected, Open-Meteo Fresh, Open ER-API Active
+      - Disruption Briefing: QF12 ... (demo-labelled)
+4. Open Live Radar:
+      - Live OpenSky mode; preset switch; refresh; detail modal; save watchlist.
+5. Open Airports: search (FreeAirportDB), timetables.
+6. Open Fares: sorting + breakdown; Amadeus offers → unconfigured state.
+7. Open Alerts: mark read / mark all read; watchlist; simulate.
+8. Open Staff: PIN login, filters, create case.
+9. Open Settings: backend URL apply, health probe.
+10. Stop backend → verify error/empty/retry states.
+```
+
+---
+
+## 17. Feature-by-Feature Demonstration Checklist
+
+- [ ] Backend starts; `GET /api/health` → 200.
+- [ ] Dashboard loads with live/demo indicators and confidence badges.
+- [ ] Live radar refresh works (Live OpenSky / Demo).
+- [ ] Weather and FX load with freshness.
+- [ ] Fares/disruptions/alerts screens reachable and honest.
 - [ ] Settings/diagnostics show backend connectivity.
 - [ ] Demo mode works without external keys.
 - [ ] Lint + typecheck + backend tests pass.
 
-### Sample test scenarios
-1. Start backend + mobile; verify health and dashboard.
-2. Stop backend → verify backend-unreachable error states on client.
-3. Stop weather provider → verify demo weather with confidence label.
-4. Run backend test suite → 63/63 pass.
-5. Toggle demo mode → verify no live/demo mixing.
+---
+
+## 18. Technical Communication: Frontend ↔ Backend ↔ MySQL ↔ External APIs
+
+1. **Mobile → Backend:** React Native client (`src/services/api.ts`) issues REST JSON calls (`fetchWithTimeout` with 8s timeout, 2 retries, exponential backoff; TTL caches for weather/currency). Base URL resolution per platform.
+2. **Backend → MySQL/Demo:** Controllers call models (`Flight`, `User`, `Disruption`, `Alert`, `Notification`, `FlightFare`) or use demo datasets when DB is unavailable.
+3. **Backend → External APIs (server-side):** Services call OpenSky, Open-Meteo, Open ER-API, FreeAirportDB, Amadeus, FlightAware. Credentials via backend env only.
+4. **Backend → Mobile:** JSON envelopes with `success`, `isDemo`, `isLive`, `source`, `count`, `data`, freshness fields; client renders confidence badges and distinguishes demo vs live.
+5. **Caching/freshness:** weather & currency TTL (5 min); OpenSky via backend caching; freshness metadata (`observationTimeUtc`, `retrievalTimeUtc`, `ageSeconds`) surfaced via `FreshnessIndicator`.
 
 ---
 
-*Documented for the AeroNexus BCA practical examination and portfolio presentation.*
+*Docs prepared from the actual implementation for the AeroNexus BCA practical examination and GitHub portfolio presentation.*

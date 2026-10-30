@@ -10,7 +10,7 @@ interface Props {
 }
 
 export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking' }: Props) {
-  const { isBackendConnected, isLoadingFlights, fetchFlights, serverUrl } = useFlight();
+  const { isBackendConnected, isLoadingFlights, fetchFlights } = useFlight();
 
   return (
     <View style={styles.container}>
@@ -63,19 +63,12 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
             ]}
           >
             {isBackendConnected
-              ? 'BACKEND 200'
+              ? 'ALL SYSTEMS READY'
               : isLoadingFlights
               ? 'CONNECTING'
               : 'OFFLINE'}
           </Text>
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.principlePill}>
-        <Ionicons name="link-outline" size={13} color={Palette.primary} style={{ marginRight: 6 }} />
-        <Text style={styles.principleText} numberOfLines={1}>
-          API: {serverUrl} • Solid State Sync Active
-        </Text>
       </View>
     </View>
   );
@@ -157,21 +150,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '700',
     letterSpacing: 0.4,
-  },
-  principlePill: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: Palette.surfaceSubtle,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    marginTop: 10,
-    borderWidth: 1,
-    borderColor: Palette.border,
-  },
-  principleText: {
-    color: Palette.textSecondary,
-    fontSize: 11,
-    fontWeight: '500',
   },
 });

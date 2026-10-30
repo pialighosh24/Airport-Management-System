@@ -57,6 +57,8 @@ interface FlightContextType {
   setAlertOnBoarding: (enabled: boolean) => void;
   notifications: AlertNotification[];
   dismissNotification: (id: string) => void;
+  markNotificationRead: (id: string) => void;
+  markAllNotificationsRead: () => void;
   simulateTriggerAlert: (flightNumber: string, type: 'delay' | 'gate_change' | 'boarding') => void;
 
   // Schedules
@@ -294,6 +296,14 @@ export function FlightProvider({ children }: { children: React.ReactNode }) {
     setNotifications((prev) => prev.filter((n) => n.id !== id));
   };
 
+  const markNotificationRead = (id: string) => {
+    setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
+
   const simulateTriggerAlert = (flightNumber: string, type: 'delay' | 'gate_change' | 'boarding') => {
     const titles = {
       delay: `Delay Alert: ${flightNumber}`,
@@ -380,6 +390,8 @@ export function FlightProvider({ children }: { children: React.ReactNode }) {
         setAlertOnBoarding,
         notifications,
         dismissNotification,
+        markNotificationRead,
+        markAllNotificationsRead,
         simulateTriggerAlert,
         schedules,
         isStaffAuthenticated,

@@ -130,7 +130,7 @@ export default function AirportsScreen() {
         }
       } catch (err: unknown) {
         if (isMounted) {
-          const msg = err instanceof Error ? err.message : 'Backend offline';
+          const msg = err instanceof Error ? err.message : 'Service unavailable';
           setTimetableErrorMsg(msg);
           setSchedules(DEMO_SCHEDULES);
         }
@@ -545,7 +545,7 @@ export default function AirportsScreen() {
               <View style={styles.errorNotice}>
                 <Ionicons name="information-circle-outline" size={13} color="#FDE68A" />
                 <Text style={styles.errorNoticeText}>
-                  Backend unreachable — displaying local demo schedule.
+                  Flight service temporarily unavailable. Showing sample schedules.
                 </Text>
               </View>
             )}
@@ -555,7 +555,7 @@ export default function AirportsScreen() {
               {isLoadingSchedules ? (
                 <View style={styles.loadingBox}>
                   <ActivityIndicator size="small" color="#38BDF8" />
-                  <Text style={styles.loadingText}>Fetching timetable from backend...</Text>
+                  <Text style={styles.loadingText}>Fetching timetable...</Text>
                 </View>
               ) : filteredSchedules.length > 0 ? (
                 filteredSchedules.map((item) => (

@@ -13,6 +13,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { useFlight } from '@/context/FlightContext';
+import { AircraftTelemetry } from '@/types';
 
 export default function AlertsScreen() {
   const {
@@ -28,6 +29,8 @@ export default function AlertsScreen() {
     setAlertsDelayThresholdMins,
     notifications,
     dismissNotification,
+    markNotificationRead,
+    markAllNotificationsRead,
     simulateTriggerAlert,
     aircraftList,
   } = useFlight();
@@ -36,18 +39,20 @@ export default function AlertsScreen() {
   const [isEditingEmail, setIsEditingEmail] = useState(false);
 
   const handleSaveEmail = () => {
-    if (!inputEmail.includes('@')) {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(inputEmail.trim())) {
       Alert.alert('Invalid Email', 'Please enter a valid email address.');
       return;
     }
-    setUserEmail(inputEmail);
+    const trimmedEmail = inputEmail.trim();
+    setUserEmail(trimmedEmail);
     setIsEditingEmail(false);
-    Alert.alert('Email Updated', `Flight alerts will be sent to: ${inputEmail}`);
+    Alert.alert('Email Updated', `Flight alerts will be sent to: ${trimmedEmail}`);
   };
 
-  const savedAircraft = aircraftList.filter((ac) =>
-    savedFlightNumbers.includes(ac.flightNumber)
-  );
+  const savedAircraft: AircraftTelemetry[] = savedFlightNumbers
+    .map((flightNumber) => aircraftList.find((ac) => ac.flightNumber === flightNumber))
+    .filter((ac): ac is AircraftTelemetry => ac != null);
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -222,7 +227,15 @@ export default function AlertsScreen() {
 
           {/* Live Notification Timeline Log */}
           <View style={styles.timelineCard}>
-            <Text style={styles.sectionHeader}>ALERT NOTIFICATION HISTORY</Text>
+            <View style={styles.timelineHeaderRow}>
+              <Text style={styles.sectionHeader}>ALERT NOTIFICATION HISTORY</Text>
+              {notifications.some((n) => !n.read) ? (
+                <TouchableOpacity style={styles.markAllReadBtn} onPress={markAllNotificationsRead}>
+                  <Ionicons name="checkmark" size={12} color="#0284C7" />
+                  <Text style={styles.markAllReadBtnText}>Mark all read</Text>
+                </TouchableOpacity>
+              ) : null}
+            </View>
             {notifications.length > 0 ? (
               notifications.map((notif) => (
                 <View key={notif.id} style={styles.notifItem}>
@@ -243,9 +256,18 @@ export default function AlertsScreen() {
                   <View style={styles.notifContent}>
                     <View style={styles.notifTopRow}>
                       <Text style={styles.notifTitle}>{notif.title}</Text>
-                      <TouchableOpacity onPress={() => dismissNotification(notif.id)}>
-                        <Ionicons name="close" size={14} color="#64748B" />
-                      </TouchableOpacity>
+                      <View style={styles.notifTopActions}>
+                        <TouchableOpacity onPress={() => markNotificationRead(notif.id)} style={styles.markReadBtn}>
+                          <Ionicons
+                            name={notif.read ? 'checkmark-circle' : 'checkmark-circle-outline'}
+                            size={14}
+                            color={notif.read ? '#059669' : '#0284C7'}
+                          />
+                        </TouchableOpacity>
+                        <TouchableOpacity onPress={() => dismissNotification(notif.id)}>
+                          <Ionicons name="close" size={14} color="#64748B" />
+                        </TouchableOpacity>
+                      </View>
                     </View>
                     <Text style={styles.notifMessage}>{notif.message}</Text>
                     <Text style={styles.notifTime}>
@@ -578,6 +600,33 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  timelineHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 4,
+  },
+  markAllReadBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  markAllReadBtnText: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#0284C7',
+  },
+  notifTopActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  markReadBtn: {
+    padding: 2,
   },
   notifTitle: {
     fontSize: 12,

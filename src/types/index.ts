@@ -212,6 +212,7 @@ export interface DisruptionCase {
   summary: string;
   actionPlan: string;
   rebookingStatus: 'in_progress' | 'completed' | 'not_required';
+  isDemo?: boolean;
 }
 
 export interface AirportMetar {

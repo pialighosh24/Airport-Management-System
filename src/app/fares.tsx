@@ -42,7 +42,7 @@ export default function FaresScreen() {
         }
       } catch (err: unknown) {
         if (isMounted) {
-          const msg = err instanceof Error ? err.message : 'Backend offline';
+          const msg = err instanceof Error ? err.message : 'Service unavailable';
           setErrorMsg(msg);
           // Fallback to local demo dataset
           setFares(DEMO_FARES);
@@ -228,7 +228,7 @@ export default function FaresScreen() {
           <View style={styles.errorNotice}>
             <Ionicons name="information-circle-outline" size={13} color="#D97706" />
             <Text style={styles.errorNoticeText}>
-              Backend unreachable — displaying local demo fares.
+              Flight service temporarily unavailable. Showing sample fares.
             </Text>
           </View>
         )}
@@ -267,7 +267,7 @@ export default function FaresScreen() {
           {isLoading ? (
             <View style={styles.loadingBox}>
               <ActivityIndicator size="small" color="#0284C7" />
-              <Text style={styles.loadingText}>Fetching fare comparisons from backend...</Text>
+              <Text style={styles.loadingText}>Fetching fare comparisons...</Text>
             </View>
           ) : (
             fares.map((fare) => (
