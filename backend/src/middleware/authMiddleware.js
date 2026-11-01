@@ -60,6 +60,29 @@ function requireStaff(req, res, next) {
 }
 
 /**
+ * Middleware: Require Administrator role (Admin Panel access only)
+ */
+function requireAdmin(req, res, next) {
+  if (!req.user) {
+    return res.status(401).json({
+      success: false,
+      error: 'Unauthorized',
+      message: 'Authentication required before verifying administrator access.',
+    });
+  }
+
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({
+      success: false,
+      error: 'Forbidden',
+      message: 'Administrator access required. Staff or passenger accounts cannot access the Admin Panel.',
+    });
+  }
+
+  next();
+}
+
+/**
  * Optional authentication middleware:
  * If a token is provided, verify and attach user; if not, proceed without failing.
  */
@@ -78,5 +101,6 @@ function optionalAuth(req, res, next) {
 module.exports = {
   authenticateToken,
   requireStaff,
+  requireAdmin,
   optionalAuth,
 };

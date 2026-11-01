@@ -3,11 +3,11 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { FareCard } from '@/components/fares/FareCard';
@@ -28,6 +28,7 @@ export default function FaresScreen() {
   const [liveOffers, setLiveOffers] = useState<AmadeusOffer[]>([]);
   const [liveOffersLoading, setLiveOffersLoading] = useState(false);
   const [liveOffersError, setLiveOffersError] = useState<string | null>(null);
+  const [faresFromDemo, setFaresFromDemo] = useState(true);
 
   // Fetch fares from Express backend: GET /api/fares?sortBy=...
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function FaresScreen() {
         const response = await apiService.getFares({ sortBy });
         if (isMounted && response && response.success && Array.isArray(response.data)) {
           setFares(response.data);
+          setFaresFromDemo(Boolean(response.isDemo));
         }
       } catch (err: unknown) {
         if (isMounted) {
@@ -46,6 +48,7 @@ export default function FaresScreen() {
           setErrorMsg(msg);
           // Fallback to local demo dataset
           setFares(DEMO_FARES);
+          setFaresFromDemo(true);
         }
       } finally {
         if (isMounted) setIsLoading(false);
@@ -75,6 +78,7 @@ export default function FaresScreen() {
         if (isMounted) {
           if (response && response.success && Array.isArray(response.offers)) {
             setLiveOffers(response.offers);
+            setLiveOffersError(null);
           } else {
             setLiveOffers([]);
             setLiveOffersError(response?.message || 'Live flight offers are currently unavailable.');
@@ -142,7 +146,9 @@ export default function FaresScreen() {
 
           <View style={styles.routeSubRow}>
             <Text style={styles.routeSubText}>📅 Oct 15 • 1 Adult • Economy</Text>
-            <Text style={styles.resultsCountText}>{fares.length} verified fares</Text>
+            <Text style={styles.resultsCountText}>
+              {faresFromDemo ? `${fares.length} sample fares` : `${fares.length} verified fares`}
+            </Text>
           </View>
         </View>
 
@@ -259,7 +265,12 @@ export default function FaresScreen() {
                 <Text style={styles.liveOfferText}>{`Dep ${offer.departureTimeUtc ?? '—'} • Arr ${offer.arrivalTimeUtc ?? '—'} • ${offer.durationMinutes ?? '—'} min`}</Text>
               </View>
             ))
-          ) : null}
+          ) : (
+            <View style={styles.loadingBox}>
+              <Ionicons name="airplane-outline" size={16} color="#94A3B8" />
+              <Text style={styles.loadingText}>No live offers available for this route right now.</Text>
+            </View>
+          )}
         </View>
 
         {/* Fares List */}

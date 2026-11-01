@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AircraftTelemetry } from '@/types';
 import { FreshnessIndicator } from '@/components/common/FreshnessIndicator';
 import { useFlight } from '@/context/FlightContext';
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export function FlightDetailModal({ aircraft, visible, onClose }: Props) {
+  const insets = useSafeAreaInsets();
   const { isFlightSaved, toggleSaveFlight, simulateTriggerAlert } = useFlight();
 
   if (!aircraft) return null;
@@ -32,7 +34,7 @@ export function FlightDetailModal({ aircraft, visible, onClose }: Props) {
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { paddingBottom: Math.max(insets.bottom, 0) + 8 }]}>
         <View style={styles.sheetContainer}>
           {/* Sheet Header Handle */}
           <View style={styles.dragHandle} />
@@ -68,7 +70,11 @@ export function FlightDetailModal({ aircraft, visible, onClose }: Props) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.scrollContent} showsVerticalScrollIndicator={false}>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             {/* Route Card / Live Radio Status */}
             {aircraft.isLive ? (
               <View style={styles.liveRouteCard}>
@@ -443,6 +449,9 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: 20,
     paddingTop: 14,
+  },
+  scroll: {
+    flex: 1,
   },
   liveRouteCard: {
     backgroundColor: '#F8FAFC',

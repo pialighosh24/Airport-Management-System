@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FlightFare } from '@/types';
 
 interface Props {
@@ -17,6 +18,8 @@ interface Props {
 }
 
 export function FareBreakdownModal({ fare, visible, onClose }: Props) {
+  const insets = useSafeAreaInsets();
+
   if (!fare) return null;
 
   return (
@@ -26,7 +29,7 @@ export function FareBreakdownModal({ fare, visible, onClose }: Props) {
       transparent={true}
       onRequestClose={onClose}
     >
-      <View style={styles.backdrop}>
+      <View style={[styles.backdrop, { paddingBottom: Math.max(insets.bottom, 0) + 8 }]}>
         <View style={styles.modalCard}>
           {/* Header */}
           <View style={styles.header}>
@@ -41,7 +44,10 @@ export function FareBreakdownModal({ fare, visible, onClose }: Props) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content}>
+          <ScrollView
+            style={[styles.content, styles.scroll]}
+            contentContainerStyle={{ paddingBottom: Math.max(insets.bottom, 0) + 16 }}
+          >
             {/* Price line items */}
             <View style={styles.lineItemsContainer}>
               <View style={styles.lineItem}>
@@ -167,6 +173,9 @@ const styles = StyleSheet.create({
   },
   content: {
     marginVertical: 12,
+  },
+  scroll: {
+    flex: 1,
   },
   lineItemsContainer: {
     backgroundColor: '#F8FAFC',

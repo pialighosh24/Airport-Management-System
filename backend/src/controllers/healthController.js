@@ -2,10 +2,9 @@ const config = require('../config');
 const { getDatabaseHealth } = require('../config/database');
 
 /**
- * @route   GET /api/health
- * @desc    Aggregated service health: process state, MySQL state and external API readiness
+ * Aggregated service health: process state, MySQL state and external API readiness
  */
-const getHealth = (req, res) => {
+function collectHealthData() {
   const dbHealth = getDatabaseHealth();
 
   const externalApis = {
@@ -43,7 +42,7 @@ const getHealth = (req, res) => {
     },
   };
 
-  res.status(200).json({
+  return {
     success: true,
     service: 'AeroNexus — Smart Flight Tracking Backend',
     status: 'healthy',
@@ -54,9 +53,20 @@ const getHealth = (req, res) => {
     version: '1.0.0',
     database: dbHealth,
     externalApis,
-  });
+  };
+}
+
+/**
+ * @route   GET /api/health
+ * @desc    Aggregated service health: process state, MySQL state and external API readiness
+ */
+const getHealth = (req, res) => {
+  const health = collectHealthData();
+
+  return res.status(200).json(health);
 };
 
 module.exports = {
   getHealth,
+  collectHealthData,
 };

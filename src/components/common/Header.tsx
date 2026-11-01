@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
   branding: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   iconCircle: {
     width: 36,
@@ -123,6 +124,7 @@ const styles = StyleSheet.create({
   badge: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 1,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 14,

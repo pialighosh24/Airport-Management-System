@@ -121,7 +121,7 @@ function mapAmadeusOffers(payload) {
       durationMinutes,
       totalPrice: itinerary?.price?.totalPrice ?? null,
       currency: itinerary?.price?.currency || 'USD',
-      available: itinerary?.availability?.isAvailable !== false,
+      available: itinerary?.availability?.isAvailable === true,
     };
   });
 

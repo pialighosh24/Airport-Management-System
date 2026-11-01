@@ -228,6 +228,22 @@ const Flight = {
     return null;
   },
 
+  async updateStatus(flightIdentifier, status, customPool) {
+    const p = customPool || getPool();
+    if (!p) return null;
+
+    const [result] = await p.query(
+      'UPDATE flights SET status = ? WHERE flight_number = ?',
+      [status, flightIdentifier]
+    );
+
+    if (!result || result.affectedRows === 0) {
+      return null;
+    }
+
+    return this.findOne({ flightNumber: flightIdentifier }, p);
+  },
+
   async insertOne(flight, customPool) {
     const p = customPool || getPool();
     if (!p) throw new Error('Database pool not available');
@@ -302,6 +318,11 @@ const Flight = {
     if (filter.isDemo !== undefined) {
       sql += ' AND is_demo = ?';
       params.push(filter.isDemo ? 1 : 0);
+    }
+
+    if (filter.flightNumber) {
+      sql += ' AND flight_number = ?';
+      params.push(filter.flightNumber);
     }
 
     const [result] = await p.query(sql, params);

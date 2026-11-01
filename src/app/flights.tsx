@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { FreshnessIndicator } from '@/components/common/FreshnessIndicator';
@@ -35,6 +35,7 @@ function formatHeading(deg: number | null): string {
 
 export default function FlightIntelligenceScreen() {
   const { aircraftList, isLoadingFlights, flightError, isBackendConnected, fetchFlights, radarMode, liveMetadata } = useFlight();
+  const insets = useSafeAreaInsets();
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -70,7 +71,7 @@ export default function FlightIntelligenceScreen() {
 
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 32) }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.primary} />
         }

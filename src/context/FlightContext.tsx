@@ -67,7 +67,9 @@ interface FlightContextType {
   // Staff Portal
   isStaffAuthenticated: boolean;
   staffPin: string;
-  loginStaff: (pin: string) => boolean;
+  staffToken: string | null;
+  setStaffToken: (token: string | null) => void;
+  loginStaff: (pin: string) => Promise<boolean>;
   logoutStaff: () => void;
   disruptionCases: DisruptionCase[];
   addDisruptionCase: (newCase: Omit<DisruptionCase, 'id' | 'createdAtUtc' | 'updatedAtUtc'>) => void;
@@ -141,6 +143,7 @@ export function FlightProvider({ children }: { children: React.ReactNode }) {
 
   // Staff Portal
   const [isStaffAuthenticated, setIsStaffAuthenticated] = useState<boolean>(false);
+  const [staffToken, setStaffToken] = useState<string | null>(null);
   const [disruptionCases, setDisruptionCases] = useState<DisruptionCase[]>(DEMO_DISRUPTIONS);
 
   // Function to fetch flights from Express backend (user-triggered refresh)
@@ -329,10 +332,19 @@ export function FlightProvider({ children }: { children: React.ReactNode }) {
     setNotifications((prev) => [newNotification, ...prev]);
   };
 
-  const loginStaff = (pin: string) => {
-    // Quick demo PIN: 7700 (squawk emergency) or 1234
+  const loginStaff = async (pin: string): Promise<boolean> => {
+    // Demo PIN fallbacks: 7700 (duty ops) or 1234 (admin lead)
     if (pin === '7700' || pin === '1234' || pin === 'admin') {
       setIsStaffAuthenticated(true);
+      // Best-effort backend token exchange for staff/admin-scoped API calls
+      try {
+        const response = await apiService.staffLogin(pin);
+        if (response.success && response.data?.token) {
+          setStaffToken(response.data.token);
+        }
+      } catch {
+        // Non-blocking: staff session remains usable with demo capabilities
+      }
       return true;
     }
     return false;
@@ -396,6 +408,8 @@ export function FlightProvider({ children }: { children: React.ReactNode }) {
         schedules,
         isStaffAuthenticated,
         staffPin: '7700',
+        staffToken,
+        setStaffToken,
         loginStaff,
         logoutStaff,
         disruptionCases,

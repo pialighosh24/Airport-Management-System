@@ -134,6 +134,55 @@ export interface HealthCheckResponse {
   };
 }
 
+export interface AdminOpsStats {
+  generatedAt: string;
+  flights: {
+    total: number;
+    active: number;
+    delayed: number;
+    cancelled: number;
+    enRoute: number;
+  };
+  openDisruptions: number;
+  disruptions: any[];
+  registeredUsers: number;
+  airports: {
+    tracked: number;
+  };
+  recentActivities: any[];
+}
+
+export interface AdminUser {
+  id: string;
+  username: string;
+  email: string;
+  fullName: string;
+  role: string;
+  staffPin: string | null;
+  createdAt: string;
+}
+
+export interface AdminMonitoringSnapshot {
+  success: boolean;
+  service: string;
+  status: string;
+  message: string;
+  timestamp: string;
+  uptimeSeconds: number;
+  environment: string;
+  version: string;
+  database: HealthCheckResponse['database'];
+  externalApis?: HealthCheckResponse['externalApis'];
+  summary: {
+    flights: {
+      total: number;
+      active: number;
+    };
+    openDisruptions: number;
+    registeredUsers: number;
+  };
+}
+
 // Weather & currency responses reuse canonical response shapes from @/types
 // (WeatherSummaryResponse, CurrencyResponse, WeatherCurrentConditions, WeatherForecast, CurrencyRates)
 
@@ -484,6 +533,67 @@ export const apiService = {
       method: 'POST',
       body: JSON.stringify(payload),
     });
+  },
+
+  /**
+   * Admin Panel: Aggregated operations statistics: GET /api/admin/stats
+   */
+  async getAdminStats(): Promise<ApiResponse<AdminOpsStats>> {
+    return fetchWithTimeout<ApiResponse<AdminOpsStats>>('/api/admin/stats');
+  },
+
+  /**
+   * Admin Panel: Flight list with optional status / search filters: GET /api/admin/flights
+   */
+  async getAdminFlights(filters?: { status?: string; search?: string }): Promise<ApiResponse<AircraftTelemetry[]>> {
+    const params = new URLSearchParams();
+    if (filters?.status) params.append('status', filters.status);
+    if (filters?.search) params.append('search', filters.search);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchWithTimeout<ApiResponse<AircraftTelemetry[]>>(`/api/admin/flights${qs}`);
+  },
+
+  /**
+   * Admin Panel: Update flight operational status: PATCH /api/admin/flights/:identifier/status
+   */
+  async updateAdminFlightStatus(identifier: string, status: string, token?: string): Promise<ApiResponse<AircraftTelemetry>> {
+    return fetchWithTimeout<ApiResponse<AircraftTelemetry>>(`/api/admin/flights/${encodeURIComponent(identifier)}/status`, {
+      method: 'PATCH',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify({ status }),
+    });
+  },
+
+  /**
+   * Admin Panel: Disruption cases list: GET /api/admin/disruptions
+   */
+  async getAdminDisruptions(): Promise<ApiResponse<any[]>> {
+    return fetchWithTimeout<ApiResponse<any[]>>('/api/admin/disruptions');
+  },
+
+  /**
+   * Admin Panel: Update / resolve disruption: PATCH /api/admin/disruptions/:id
+   */
+  async updateAdminDisruptionStatus(id: string, updates: any, token?: string): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>(`/api/admin/disruptions/${encodeURIComponent(id)}`, {
+      method: 'PATCH',
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+      body: JSON.stringify(updates),
+    });
+  },
+
+  /**
+   * Admin Panel: Registered users list: GET /api/admin/users
+   */
+  async getAdminUsers(): Promise<ApiResponse<AdminUser[]>> {
+    return fetchWithTimeout<ApiResponse<AdminUser[]>>('/api/admin/users');
+  },
+
+  /**
+   * Admin Panel: Backend / database / external API monitoring snapshot: GET /api/admin/monitoring
+   */
+  async getAdminMonitoring(): Promise<ApiResponse<AdminMonitoringSnapshot>> {
+    return fetchWithTimeout<ApiResponse<AdminMonitoringSnapshot>>('/api/admin/monitoring');
   },
 };
 

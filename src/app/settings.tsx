@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, TouchableOpacity, TextInput, ActivityIndicator } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { useFlight } from '@/context/FlightContext';
@@ -8,6 +9,7 @@ import { Palette } from '@/constants/theme';
 
 export default function SettingsScreen() {
   const { serverUrl, updateServerUrl, isBackendConnected } = useFlight();
+  const insets = useSafeAreaInsets();
   const [customUrlInput, setCustomUrlInput] = useState(serverUrl);
   const [isSaving, setIsSaving] = useState(false);
   const [healthStatus, setHealthStatus] = useState<string>('unknown');
@@ -31,7 +33,7 @@ export default function SettingsScreen() {
     <SafeAreaView style={styles.safeArea}>
       <Header title="Settings" subtitle="Backend Connection & Data Sources" />
 
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView contentContainerStyle={[styles.content, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Ionicons name="server" size={16} color={Palette.primary} />

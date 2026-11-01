@@ -3,13 +3,14 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   TextInput,
   Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Header } from '@/components/common/Header';
 import { DisruptionCard } from '@/components/staff/DisruptionCard';
 import { CreateDisruptionModal } from '@/components/staff/CreateDisruptionModal';
@@ -28,9 +29,9 @@ export default function StaffScreen() {
   const [createModalVisible, setCreateModalVisible] = useState(false);
   const [statusFilter, setStatusFilter] = useState<'all' | DisruptionCase['status']>('all');
 
-  const handleLogin = (pinToUse?: string) => {
+  const handleLogin = async (pinToUse?: string) => {
     const pin = pinToUse || pinInput;
-    const success = loginStaff(pin);
+    const success = await loginStaff(pin);
     if (!success) {
       Alert.alert('Access Denied', 'Invalid Staff PIN. Demo PIN is: 7700 (or 1234)');
     } else {
@@ -120,6 +121,21 @@ export default function StaffScreen() {
           <TouchableOpacity style={styles.logoutBtn} onPress={logoutStaff}>
             <Ionicons name="log-out-outline" size={14} color="#DC2626" />
             <Text style={styles.logoutBtnText}>Lock</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Admin Panel entry */}
+        <View style={styles.adminEntryCard}>
+          <View style={styles.adminEntryRow}>
+            <Ionicons name="shield-checkmark" size={18} color="#0284C7" />
+            <View style={styles.adminEntryText}>
+              <Text style={styles.adminEntryTitle}>AeroNexus Admin Panel</Text>
+              <Text style={styles.adminEntrySubtitle}>Operations statistics, flight & disruption management</Text>
+            </View>
+          </View>
+          <TouchableOpacity style={styles.createCaseBtn} onPress={() => router.push({ pathname: '/admin' })}>
+            <Ionicons name="open-outline" size={16} color="#FFFFFF" />
+            <Text style={styles.createCaseBtnText}>Open Admin Panel</Text>
           </TouchableOpacity>
         </View>
 
@@ -356,6 +372,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingTop: 12,
     paddingBottom: 8,
+  },
+  adminEntryCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    padding: 14,
+    marginBottom: 12,
+  },
+  adminEntryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 12,
+  },
+  adminEntryText: {
+    flex: 1,
+  },
+  adminEntryTitle: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: '#0F172A',
+  },
+  adminEntrySubtitle: {
+    fontSize: 10,
+    fontWeight: '600',
+    color: '#64748B',
+    marginTop: 2,
   },
   createCaseBtn: {
     flexDirection: 'row',

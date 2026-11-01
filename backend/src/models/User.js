@@ -193,6 +193,77 @@ class User {
     };
   }
 
+  static async find() {
+    if (isDatabaseConnected()) {
+      try {
+        const pool = getPool();
+        const [rows] = await pool.query(
+          'SELECT id, username, email, full_name, role, staff_pin, created_at FROM users ORDER BY id ASC'
+        );
+        return rows.map((row) => ({
+          id: row.id,
+          username: row.username,
+          email: row.email,
+          fullName: row.full_name,
+          role: row.role,
+          staffPin: row.staff_pin ?? null,
+          createdAt: row.created_at,
+        }));
+      } catch (err) {
+        console.warn('⚠️ [User.find] DB read failed, falling back to in-memory users:', err.message);
+      }
+    }
+
+    return inMemoryUsers.map((u) => ({
+      id: u.id,
+      username: u.username,
+      email: u.email,
+      fullName: u.fullName,
+      role: u.role,
+      staffPin: u.staffPin ?? null,
+      createdAt: u.createdAt,
+    }));
+  }
+
+  static async updateRole(id, role) {
+    const numId = parseInt(id, 10);
+    const cleanRole = String(role || '').toLowerCase();
+    const ALLOWED_ROLES = ['passenger', 'staff', 'admin'];
+
+    if (!ALLOWED_ROLES.includes(cleanRole)) {
+      const err = new Error(`Invalid user role '${role}'. Allowed values: ${ALLOWED_ROLES.join(', ')}.`);
+      err.name = 'ValidationError';
+      throw err;
+    }
+
+    if (isDatabaseConnected()) {
+      try {
+        const pool = getPool();
+        const [result] = await pool.execute('UPDATE users SET role = ? WHERE id = ?', [cleanRole, numId]);
+        if (result && result.affectedRows > 0) {
+          const found = await this.findById(id);
+          if (found) return found;
+        }
+      } catch (err) {
+        console.warn('⚠️ [User.updateRole] DB update failed, falling back to in-memory store:', err.message);
+      }
+    }
+
+    const index = inMemoryUsers.findIndex((u) => u.id === numId);
+    if (index === -1) return null;
+
+    inMemoryUsers[index] = { ...inMemoryUsers[index], role: cleanRole };
+    return {
+      id: inMemoryUsers[index].id,
+      username: inMemoryUsers[index].username,
+      email: inMemoryUsers[index].email,
+      fullName: inMemoryUsers[index].fullName,
+      role: inMemoryUsers[index].role,
+      staffPin: inMemoryUsers[index].staffPin ?? null,
+      createdAt: inMemoryUsers[index].createdAt,
+    };
+  }
+
   static verifyPassword(plainPassword, userRecord) {
     if (!userRecord) return false;
     // Check if password_hash in DB has format "salt:hash"

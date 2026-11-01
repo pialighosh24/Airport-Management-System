@@ -3,6 +3,7 @@ import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import * as SplashScreen from 'expo-splash-screen';
 import { FlightProvider } from '@/context/FlightContext';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Palette } from '@/constants/theme';
 
 SplashScreen.preventAutoHideAsync();
@@ -13,8 +14,9 @@ export default function RootLayout() {
   }, []);
 
   return (
-    <FlightProvider>
-      <Tabs
+    <SafeAreaProvider>
+      <FlightProvider>
+        <Tabs
         screenOptions={{
           headerShown: false,
           tabBarActiveTintColor: Palette.primary,
@@ -23,9 +25,6 @@ export default function RootLayout() {
             backgroundColor: Palette.surface,
             borderTopColor: Palette.border,
             borderTopWidth: 1,
-            height: 62,
-            paddingBottom: 8,
-            paddingTop: 6,
             elevation: 3,
             shadowColor: '#000000',
             shadowOffset: { width: 0, height: -2 },
@@ -101,7 +100,8 @@ export default function RootLayout() {
             href: null,
           }}
         />
-      </Tabs>
-    </FlightProvider>
+        </Tabs>
+      </FlightProvider>
+    </SafeAreaProvider>
   );
 }

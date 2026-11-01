@@ -3,13 +3,13 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
   RefreshControl,
   Platform,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { StatCard } from '@/components/ui/StatCard';
@@ -31,6 +31,7 @@ export default function CommandDashboard() {
     disruptionCases,
     notifications,
   } = useFlight();
+  const insets = useSafeAreaInsets();
 
   const [weather, setWeather] = useState<WeatherSummaryResponse | null>(null);
   const [weatherLoading, setWeatherLoading] = useState(true);
@@ -139,7 +140,7 @@ export default function CommandDashboard() {
     <SafeAreaView style={styles.safeArea}>
       <ScrollView
         style={styles.scroll}
-        contentContainerStyle={styles.content}
+        contentContainerStyle={[styles.content, { paddingBottom: 73 + insets.bottom }]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={Palette.primary} />
         }
