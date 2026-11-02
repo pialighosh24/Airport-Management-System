@@ -131,7 +131,7 @@ class User {
   }
 
   static async findByStaffPin(pin) {
-    const cleanPin = pin.trim();
+    const cleanPin = String(pin || '').trim();
     if (isDatabaseConnected()) {
       try {
         const pool = getPool();
@@ -140,6 +140,10 @@ class User {
       } catch (err) {
         console.warn('⚠️ [User.findByStaffPin] DB query failed:', err.message);
       }
+    }
+    // Demo fallback accounts are development-only; never resolve them in production.
+    if (process.env.NODE_ENV === 'production') {
+      return null;
     }
     return inMemoryUsers.find((u) => u.staffPin === cleanPin) || null;
   }
