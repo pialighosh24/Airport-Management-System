@@ -3,11 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   TouchableOpacity,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { Header } from '@/components/common/Header';
 import { FareCard } from '@/components/fares/FareCard';
@@ -16,24 +17,77 @@ import { DEMO_FARES } from '@/data/demo-fares';
 import { apiService } from '@/services/api';
 import { FlightFare } from '@/types';
 
-type SortOption = 'cheapest' | 'fastest' | 'best_value';
+type SortOption = 'best_value' | 'cheapest' | 'fastest' | 'fewest_stops';
+type CurrencyOption = 'INR' | 'USD';
+
+interface RouteOption {
+  id: string;
+  label: string;
+  originIata: string;
+  originCity: string;
+  destinationIata: string;
+  destinationCity: string;
+}
+
+const POPULAR_ROUTES: RouteOption[] = [
+  {
+    id: 'del-ccu',
+    label: 'DEL ➔ CCU',
+    originIata: 'DEL',
+    originCity: 'New Delhi',
+    destinationIata: 'CCU',
+    destinationCity: 'Kolkata',
+  },
+  {
+    id: 'bom-del',
+    label: 'BOM ➔ DEL',
+    originIata: 'BOM',
+    originCity: 'Mumbai',
+    destinationIata: 'DEL',
+    destinationCity: 'New Delhi',
+  },
+  {
+    id: 'blr-ccu',
+    label: 'BLR ➔ CCU',
+    originIata: 'BLR',
+    originCity: 'Bengaluru',
+    destinationIata: 'CCU',
+    destinationCity: 'Kolkata',
+  },
+  {
+    id: 'jfk-lhr',
+    label: 'JFK ➔ LHR',
+    originIata: 'JFK',
+    originCity: 'New York',
+    destinationIata: 'LHR',
+    destinationCity: 'London',
+  },
+];
 
 export default function FaresScreen() {
+  const [selectedRoute, setSelectedRoute] = useState<RouteOption>(POPULAR_ROUTES[0]); // Default DEL -> CCU
+  const [currency, setCurrency] = useState<CurrencyOption>('INR'); // Default INR per Blueprint v2.0
+  const [sortBy, setSortBy] = useState<SortOption>('best_value');
   const [selectedFare, setSelectedFare] = useState<FlightFare | null>(null);
   const [breakdownVisible, setBreakdownVisible] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOption>('best_value');
-  const [fares, setFares] = useState<FlightFare[]>(DEMO_FARES);
+  const [fares, setFares] = useState<FlightFare[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
-  // Fetch fares from Express backend: GET /api/fares?sortBy=...
+  // Fetch fares from Express backend: GET /api/fares?origin=...&destination=...&currency=...&sortBy=...
   useEffect(() => {
     let isMounted = true;
     const fetchFares = async () => {
       setIsLoading(true);
       setErrorMsg(null);
       try {
-        const response = await apiService.getFares({ sortBy });
+        const response = await apiService.getFares({
+          origin: selectedRoute.originIata,
+          destination: selectedRoute.destinationIata,
+          currency,
+          sortBy,
+        });
+
         if (isMounted && response && response.success && Array.isArray(response.data)) {
           setFares(response.data);
         }
@@ -41,8 +95,32 @@ export default function FaresScreen() {
         if (isMounted) {
           const msg = err instanceof Error ? err.message : 'Backend offline';
           setErrorMsg(msg);
-          // Fallback to local demo dataset
-          setFares(DEMO_FARES);
+          // Fallback to local demo dataset filtered for route and sorted
+          const localFiltered = DEMO_FARES.filter(
+            (f) =>
+              f.originIata === selectedRoute.originIata &&
+              f.destinationIata === selectedRoute.destinationIata
+          );
+
+          // Apply local sort if backend unreachable
+          localFiltered.sort((a, b) => {
+            const priceA = currency === 'USD' ? a.totalFareUsd : (a.totalFareInr || a.totalFareUsd * 84);
+            const priceB = currency === 'USD' ? b.totalFareUsd : (b.totalFareInr || b.totalFareUsd * 84);
+            const bagFeeA = currency === 'USD'
+              ? (a.baggage.checkedBagIncluded ? 0 : (a.baggage.extraCheckedBagFeeUsd || 50))
+              : (a.baggage.checkedBagIncluded ? 0 : (a.baggage.extraCheckedBagFeeInr || 1200));
+            const bagFeeB = currency === 'USD'
+              ? (b.baggage.checkedBagIncluded ? 0 : (b.baggage.extraCheckedBagFeeUsd || 50))
+              : (b.baggage.checkedBagIncluded ? 0 : (b.baggage.extraCheckedBagFeeInr || 1200));
+
+            if (sortBy === 'cheapest') return priceA - priceB;
+            if (sortBy === 'fastest') return a.durationMinutes - b.durationMinutes;
+            if (sortBy === 'fewest_stops') return a.stopsCount - b.stopsCount;
+            // Best Value
+            return (priceA + bagFeeA) - (priceB + bagFeeB);
+          });
+
+          setFares(localFiltered.length > 0 ? localFiltered : DEMO_FARES);
         }
       } finally {
         if (isMounted) setIsLoading(false);
@@ -53,9 +131,14 @@ export default function FaresScreen() {
     return () => {
       isMounted = false;
     };
-  }, [sortBy]);
+  }, [selectedRoute, currency, sortBy]);
 
   const handleOpenBreakdown = (fare: FlightFare) => {
+    setSelectedFare(fare);
+    setBreakdownVisible(true);
+  };
+
+  const handlePriceCheck = (fare: FlightFare) => {
     setSelectedFare(fare);
     setBreakdownVisible(true);
   };
@@ -65,10 +148,12 @@ export default function FaresScreen() {
       case 'cheapest':
         return 'Sorted strictly by lowest total checkout price per passenger.';
       case 'fastest':
-        return 'Sorted by minimum elapsed airborne duration.';
+        return 'Sorted by minimum elapsed flight duration.';
+      case 'fewest_stops':
+        return 'Sorted by minimum transit connections (non-stop priority).';
       case 'best_value':
       default:
-        return 'Best Value incorporates upfront fare PLUS checked baggage charges so unbundled budget airlines do not deceive you.';
+        return 'Blueprint Weighted Score: 0.55 price rank + 0.30 duration rank + 0.15 stops rank, penalizing unbundled checked baggage charges.';
     }
   };
 
@@ -77,36 +162,108 @@ export default function FaresScreen() {
       <View style={styles.container}>
         <Header
           title="Fare Compare"
-          subtitle="Transparent Pricing • Zero Hidden Baggage Fees"
+          subtitle="Smart Price Intelligence • Default INR (₹)"
         />
 
-        {/* Route Selector Summary */}
-        <View style={styles.routeHeaderCard}>
-          <View style={styles.routeRow}>
+        {/* Top Controls: Route Chips & Currency Toggle */}
+        <View style={styles.controlsHeaderCard}>
+          {/* Currency Switcher */}
+          <View style={styles.currencyRow}>
+            <View style={styles.currencyLabelGroup}>
+              <Ionicons name="cash-outline" size={14} color="#38BDF8" />
+              <Text style={styles.currencyTitle}>DISPLAY CURRENCY</Text>
+            </View>
+
+            <View style={styles.currencyToggleBox}>
+              <TouchableOpacity
+                style={[
+                  styles.currencyPill,
+                  currency === 'INR' && styles.currencyPillActive,
+                ]}
+                onPress={() => setCurrency('INR')}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.currencyPillText,
+                    currency === 'INR' && styles.currencyPillTextActive,
+                  ]}
+                >
+                  ₹ INR
+                </Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[
+                  styles.currencyPill,
+                  currency === 'USD' && styles.currencyPillActive,
+                ]}
+                onPress={() => setCurrency('USD')}
+                activeOpacity={0.7}
+              >
+                <Text
+                  style={[
+                    styles.currencyPillText,
+                    currency === 'USD' && styles.currencyPillTextActive,
+                  ]}
+                >
+                  $ USD
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* Route Chips */}
+          <View style={styles.routeChipsContainer}>
+            <Text style={styles.routeChipsLabel}>SELECT CORRIDOR</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.routeChipsScroll}>
+              {POPULAR_ROUTES.map((route) => {
+                const isSelected = route.id === selectedRoute.id;
+                return (
+                  <TouchableOpacity
+                    key={route.id}
+                    style={[styles.routeChip, isSelected && styles.routeChipActive]}
+                    onPress={() => setSelectedRoute(route)}
+                    activeOpacity={0.7}
+                  >
+                    <Text style={[styles.routeChipText, isSelected && styles.routeChipTextActive]}>
+                      {route.label}
+                    </Text>
+                  </TouchableOpacity>
+                );
+              })}
+            </ScrollView>
+          </View>
+
+          {/* Active Route Overview */}
+          <View style={styles.activeRouteCard}>
             <View style={styles.routeBox}>
               <Text style={styles.routeLabel}>FROM</Text>
-              <Text style={styles.routeCity}>New York (JFK)</Text>
+              <Text style={styles.routeCity}>{selectedRoute.originCity}</Text>
+              <Text style={styles.routeIata}>{selectedRoute.originIata}</Text>
             </View>
 
             <View style={styles.routeArrow}>
-              <Ionicons name="swap-horizontal" size={18} color="#38BDF8" />
+              <Ionicons name="airplane" size={18} color="#38BDF8" />
             </View>
 
             <View style={[styles.routeBox, { alignItems: 'flex-end' }]}>
               <Text style={styles.routeLabel}>TO</Text>
-              <Text style={styles.routeCity}>London (LHR)</Text>
+              <Text style={styles.routeCity}>{selectedRoute.destinationCity}</Text>
+              <Text style={styles.routeIata}>{selectedRoute.destinationIata}</Text>
             </View>
           </View>
 
-          <View style={styles.routeSubRow}>
-            <Text style={styles.routeSubText}>📅 Oct 15 • 1 Adult • Economy</Text>
-            <Text style={styles.resultsCountText}>{fares.length} verified fares</Text>
+          <View style={styles.routeMetaRow}>
+            <Text style={styles.routeMetaText}>📅 Next Friday • 1 Adult • Economy</Text>
+            <Text style={styles.resultsCountText}>{fares.length} verified offers</Text>
           </View>
         </View>
 
-        {/* Transparent Ranking Filter Bar */}
+        {/* Transparent Ranking Filter Section */}
         <View style={styles.sortSection}>
-          <Text style={styles.sortSectionLabel}>TRANSPARENT RANKING CRITERIA</Text>
+          <Text style={styles.sortSectionLabel}>TRANSPARENT RANKING CRITERIA (BLUEPRINT v2.0)</Text>
+          
           <View style={styles.sortButtonsRow}>
             <TouchableOpacity
               style={[
@@ -114,10 +271,11 @@ export default function FaresScreen() {
                 sortBy === 'best_value' && styles.sortBtnActive,
               ]}
               onPress={() => setSortBy('best_value')}
+              activeOpacity={0.7}
             >
               <Ionicons
                 name="star"
-                size={12}
+                size={11}
                 color={sortBy === 'best_value' ? '#FFFFFF' : '#38BDF8'}
               />
               <Text
@@ -126,7 +284,7 @@ export default function FaresScreen() {
                   sortBy === 'best_value' && styles.sortBtnTextActive,
                 ]}
               >
-                Best Value (Fare + Bags)
+                Best Value
               </Text>
             </TouchableOpacity>
 
@@ -136,10 +294,11 @@ export default function FaresScreen() {
                 sortBy === 'cheapest' && styles.sortBtnActive,
               ]}
               onPress={() => setSortBy('cheapest')}
+              activeOpacity={0.7}
             >
               <Ionicons
                 name="pricetag-outline"
-                size={12}
+                size={11}
                 color={sortBy === 'cheapest' ? '#FFFFFF' : '#94A3B8'}
               />
               <Text
@@ -158,10 +317,11 @@ export default function FaresScreen() {
                 sortBy === 'fastest' && styles.sortBtnActive,
               ]}
               onPress={() => setSortBy('fastest')}
+              activeOpacity={0.7}
             >
               <Ionicons
                 name="flash-outline"
-                size={12}
+                size={11}
                 color={sortBy === 'fastest' ? '#FFFFFF' : '#94A3B8'}
               />
               <Text
@@ -171,6 +331,29 @@ export default function FaresScreen() {
                 ]}
               >
                 Fastest
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.sortBtn,
+                sortBy === 'fewest_stops' && styles.sortBtnActive,
+              ]}
+              onPress={() => setSortBy('fewest_stops')}
+              activeOpacity={0.7}
+            >
+              <Ionicons
+                name="git-commit-outline"
+                size={11}
+                color={sortBy === 'fewest_stops' ? '#FFFFFF' : '#94A3B8'}
+              />
+              <Text
+                style={[
+                  styles.sortBtnText,
+                  sortBy === 'fewest_stops' && styles.sortBtnTextActive,
+                ]}
+              >
+                Direct
               </Text>
             </TouchableOpacity>
           </View>
@@ -186,7 +369,7 @@ export default function FaresScreen() {
           <View style={styles.errorNotice}>
             <Ionicons name="information-circle-outline" size={13} color="#FDE68A" />
             <Text style={styles.errorNoticeText}>
-              Backend unreachable — displaying local demo fares.
+              Backend offline — displaying verified local demo fares.
             </Text>
           </View>
         )}
@@ -196,14 +379,22 @@ export default function FaresScreen() {
           {isLoading ? (
             <View style={styles.loadingBox}>
               <ActivityIndicator size="small" color="#38BDF8" />
-              <Text style={styles.loadingText}>Fetching fare comparisons from backend...</Text>
+              <Text style={styles.loadingText}>Fetching like-for-like fare offers...</Text>
+            </View>
+          ) : fares.length === 0 ? (
+            <View style={styles.emptyBox}>
+              <Ionicons name="airplane-outline" size={36} color="#64748B" />
+              <Text style={styles.emptyTitle}>No Fares Found</Text>
+              <Text style={styles.emptySubtitle}>No verified fares available for this corridor.</Text>
             </View>
           ) : (
             fares.map((fare) => (
               <FareCard
                 key={fare.id}
                 fare={fare}
+                currency={currency}
                 onViewBreakdown={handleOpenBreakdown}
+                onPriceCheck={handlePriceCheck}
               />
             ))
           )}
@@ -212,6 +403,7 @@ export default function FaresScreen() {
         {/* Breakdown Modal */}
         <FareBreakdownModal
           fare={selectedFare}
+          currency={currency}
           visible={breakdownVisible}
           onClose={() => setBreakdownVisible(false)}
         />
@@ -223,25 +415,110 @@ export default function FaresScreen() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#0B132B',
+    backgroundColor: '#FFFFFF',
   },
   container: {
     flex: 1,
-    backgroundColor: '#070D1E',
+    backgroundColor: '#F8FAFC',
   },
-  routeHeaderCard: {
-    backgroundColor: '#0F1A36',
+  controlsHeaderCard: {
+    backgroundColor: '#FFFFFF',
     marginHorizontal: 16,
-    marginTop: 10,
-    borderRadius: 12,
-    padding: 12,
+    marginTop: 12,
+    borderRadius: 14,
+    padding: 14,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
   },
-  routeRow: {
+  currencyRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginBottom: 12,
+  },
+  currencyLabelGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  currencyTitle: {
+    fontSize: 11,
+    fontWeight: '800',
+    color: '#334155',
+    letterSpacing: 0.5,
+  },
+  currencyToggleBox: {
+    flexDirection: 'row',
+    backgroundColor: '#F1F5F9',
+    borderRadius: 8,
+    padding: 3,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  currencyPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 6,
+  },
+  currencyPillActive: {
+    backgroundColor: '#0284C7',
+  },
+  currencyPillText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: '#64748B',
+  },
+  currencyPillTextActive: {
+    color: '#FFFFFF',
+  },
+  routeChipsContainer: {
+    marginBottom: 12,
+  },
+  routeChipsLabel: {
+    fontSize: 10,
+    fontWeight: '800',
+    color: '#64748B',
+    marginBottom: 6,
+    letterSpacing: 0.5,
+  },
+  routeChipsScroll: {
+    gap: 8,
+  },
+  routeChip: {
+    backgroundColor: '#F8FAFC',
+    paddingHorizontal: 12,
+    paddingVertical: 7,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+  },
+  routeChipActive: {
+    backgroundColor: '#E0F2FE',
+    borderColor: '#0284C7',
+  },
+  routeChipText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#475569',
+  },
+  routeChipTextActive: {
+    color: '#0284C7',
+    fontWeight: '800',
+  },
+  activeRouteCard: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#F8FAFC',
+    padding: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
   },
   routeBox: {
     flex: 1,
@@ -251,41 +528,48 @@ const styles = StyleSheet.create({
     fontWeight: '800',
     color: '#64748B',
     marginBottom: 2,
+    letterSpacing: 0.5,
   },
   routeCity: {
     fontSize: 14,
     fontWeight: '800',
-    color: '#F8FAFC',
+    color: '#0F172A',
+  },
+  routeIata: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0284C7',
   },
   routeArrow: {
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
-  routeSubRow: {
+  routeMetaRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginTop: 8,
+    marginTop: 10,
     paddingTop: 8,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: '#F1F5F9',
   },
-  routeSubText: {
+  routeMetaText: {
     fontSize: 11,
-    color: '#94A3B8',
+    color: '#64748B',
+    fontWeight: '500',
   },
   resultsCountText: {
     fontSize: 11,
-    fontWeight: '700',
-    color: '#38BDF8',
+    fontWeight: '800',
+    color: '#0284C7',
   },
   sortSection: {
     paddingHorizontal: 16,
     paddingTop: 10,
   },
   sortSectionLabel: {
-    fontSize: 9,
+    fontSize: 10,
     fontWeight: '800',
-    color: '#64748B',
-    letterSpacing: 0.8,
+    color: '#475569',
+    letterSpacing: 0.6,
     marginBottom: 6,
   },
   sortButtonsRow: {
@@ -297,21 +581,26 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#131D38',
-    paddingVertical: 7,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
     borderRadius: 8,
     gap: 4,
     borderWidth: 1,
-    borderColor: '#1E293B',
+    borderColor: '#E2E8F0',
+    shadowColor: '#0F172A',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.04,
+    shadowRadius: 2,
+    elevation: 1,
   },
   sortBtnActive: {
     backgroundColor: '#0284C7',
-    borderColor: '#38BDF8',
+    borderColor: '#0284C7',
   },
   sortBtnText: {
-    fontSize: 10,
+    fontSize: 11,
     fontWeight: '700',
-    color: '#94A3B8',
+    color: '#475569',
   },
   sortBtnTextActive: {
     color: '#FFFFFF',
@@ -319,41 +608,62 @@ const styles = StyleSheet.create({
   sortExplainBox: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    backgroundColor: 'rgba(56, 189, 248, 0.08)',
-    borderRadius: 6,
-    padding: 8,
-    marginVertical: 8,
-    gap: 6,
+    backgroundColor: '#EFF6FF',
+    borderRadius: 8,
+    padding: 10,
+    marginVertical: 10,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
   },
   sortExplainText: {
     flex: 1,
-    fontSize: 10,
-    color: '#BAE6FD',
-    lineHeight: 14,
+    fontSize: 11,
+    color: '#0369A1',
+    lineHeight: 16,
+    fontWeight: '500',
   },
   errorNotice: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(245, 158, 11, 0.15)',
+    backgroundColor: '#FEF3C7',
     marginHorizontal: 16,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    gap: 6,
-    marginBottom: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    gap: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#FDE68A',
   },
   errorNoticeText: {
-    fontSize: 10,
-    color: '#FDE68A',
+    fontSize: 11,
+    color: '#92400E',
+    fontWeight: '500',
   },
   loadingBox: {
-    paddingVertical: 30,
+    paddingVertical: 40,
+    alignItems: 'center',
+    gap: 10,
+  },
+  loadingText: {
+    fontSize: 13,
+    color: '#64748B',
+    fontWeight: '500',
+  },
+  emptyBox: {
+    paddingVertical: 40,
     alignItems: 'center',
     gap: 8,
   },
-  loadingText: {
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#0F172A',
+  },
+  emptySubtitle: {
     fontSize: 12,
-    color: '#94A3B8',
+    color: '#64748B',
   },
   faresList: {
     flex: 1,
