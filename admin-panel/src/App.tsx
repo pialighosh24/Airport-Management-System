@@ -10,12 +10,13 @@ import Dashboard from './pages/Dashboard';
 import Flights from './pages/Flights';
 import Disruptions from './pages/Disruptions';
 import Notices from './pages/Notices';
+import Airports from './pages/Airports';
 import Users from './pages/Users';
 import Monitoring from './pages/Monitoring';
 import AuditLogs from './pages/AuditLogs';
 import Settings from './pages/Settings';
 
-type PageKey = 'dashboard' | 'flights' | 'disruptions' | 'notices' | 'users' | 'monitoring' | 'audit' | 'settings';
+type PageKey = 'dashboard' | 'flights' | 'disruptions' | 'notices' | 'airports' | 'users' | 'monitoring' | 'audit' | 'settings';
 
 interface NavItem {
   key: PageKey;
@@ -31,6 +32,7 @@ const NAV: NavItem[] = [
   { key: 'flights', label: 'Flights', section: 'management', icon: 'flights', title: 'Flight Management', subtitle: 'Operational flight registry' },
   { key: 'disruptions', label: 'Disruptions', section: 'management', icon: 'disruptions', title: 'Disruption Management', subtitle: 'Incident response tracking' },
   { key: 'notices', label: 'Notices', section: 'management', icon: 'notices', title: 'Flight Operations Notices', subtitle: 'Broadcast operational notices' },
+  { key: 'airports', label: 'Airports', section: 'management', icon: 'airplane', title: 'Airport Management', subtitle: 'Operational airport records' },
   { key: 'users', label: 'Users', section: 'management', icon: 'users', title: 'User Management', subtitle: 'Accounts and staff assignments' },
   { key: 'monitoring', label: 'Monitoring', section: 'system', icon: 'monitoring', title: 'System Monitoring', subtitle: 'Backend, database and API health' },
   { key: 'audit', label: 'Audit Logs', section: 'system', icon: 'audit', title: 'Audit Logs', subtitle: 'Administrative action trail' },
@@ -65,6 +67,8 @@ function Shell() {
         return <Disruptions />;
       case 'notices':
         return <Notices />;
+      case 'airports':
+        return <Airports />;
       case 'users':
         return <Users />;
       case 'monitoring':
@@ -78,14 +82,14 @@ function Shell() {
     }
   };
 
-  const sections: Array<'operations' | 'management' | 'system'> = ['operations', 'management', 'system'];
+  const sections: ('operations' | 'management' | 'system')[] = ['operations', 'management', 'system'];
 
   return (
     <div className="app-shell">
       <aside className="sidebar">
         <div className="sidebar-brand">
           <div className="logo">
-            <Icon name="airplane" size={20} color="#04121f" />
+            <Icon name="airplane" size={20} color="#ffffff" />
           </div>
           <div className="brand-text">
             <div className="name">AeroNexus</div>

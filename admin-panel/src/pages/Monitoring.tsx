@@ -33,8 +33,22 @@ export default function Monitoring() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    const loadInitial = async () => {
+      try {
+        const res = await api.get<AdminMonitoring>('/api/admin/monitoring');
+        if (!cancelled && res?.success && res.data) setData(res);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof ApiError ? err.message : 'Failed to load monitoring data.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void loadInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (loading) {
     return (

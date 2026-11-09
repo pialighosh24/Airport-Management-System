@@ -5,13 +5,13 @@ const {
   createDisruption,
   updateDisruption,
 } = require('../controllers/disruptionController');
-const { optionalAuth } = require('../middleware/authMiddleware');
+const { authenticateToken, requireStaff } = require('../middleware/authMiddleware');
 
 const router = express.Router();
 
 router.get('/', getDisruptions);
 router.get('/:id', getDisruptionById);
-router.post('/', optionalAuth, createDisruption);
-router.patch('/:id', optionalAuth, updateDisruption);
+router.post('/', authenticateToken, requireStaff, createDisruption);
+router.patch('/:id', authenticateToken, requireStaff, updateDisruption);
 
 module.exports = router;

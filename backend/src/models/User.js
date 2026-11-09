@@ -112,7 +112,17 @@ class User {
       try {
         const pool = getPool();
         const [rows] = await pool.execute('SELECT id, username, email, full_name, role, staff_pin, created_at FROM users WHERE id = ?', [numId]);
-        if (rows.length > 0) return rows[0];
+        if (rows.length > 0) {
+          const row = rows[0];
+          return {
+            id: row.id,
+            username: row.username,
+            email: row.email,
+            fullName: row.full_name,
+            role: row.role,
+            createdAt: row.created_at,
+          };
+        }
       } catch (err) {
         console.warn('⚠️ [User.findById] DB query failed:', err.message);
       }
@@ -125,7 +135,6 @@ class User {
       email: found.email,
       full_name: found.fullName,
       role: found.role,
-      staff_pin: found.staffPin,
       created_at: found.createdAt,
     };
   }
@@ -210,7 +219,6 @@ class User {
           email: row.email,
           fullName: row.full_name,
           role: row.role,
-          staffPin: row.staff_pin ?? null,
           createdAt: row.created_at,
         }));
       } catch (err) {
@@ -224,7 +232,6 @@ class User {
       email: u.email,
       fullName: u.fullName,
       role: u.role,
-      staffPin: u.staffPin ?? null,
       createdAt: u.createdAt,
     }));
   }

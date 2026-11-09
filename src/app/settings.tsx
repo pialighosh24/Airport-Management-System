@@ -13,6 +13,16 @@ export default function SettingsScreen() {
   const [customUrlInput, setCustomUrlInput] = useState(serverUrl);
   const [isSaving, setIsSaving] = useState(false);
   const [healthStatus, setHealthStatus] = useState<string>('unknown');
+  const healthCheckLabel =
+    healthStatus === 'healthy'
+      ? 'Passed'
+      : healthStatus === 'degraded'
+        ? 'Warning'
+        : healthStatus === 'unhealthy'
+          ? 'Failed'
+          : healthStatus === 'unreachable'
+            ? 'Failed'
+            : 'Pending';
 
   const handleApply = async () => {
     const trimmed = customUrlInput.trim();
@@ -72,7 +82,7 @@ export default function SettingsScreen() {
           <Text style={styles.statusLine}>
             Current status: <Text style={{ fontWeight: '800', color: isBackendConnected ? Palette.successText : Palette.dangerText }}>{isBackendConnected ? 'Connected' : 'Disconnected'}</Text>
           </Text>
-          <Text style={styles.statusLine}>Connection check: {healthStatus === 'healthy' ? 'Passed' : healthStatus === 'unreachable' ? 'Failed' : 'Pending'}</Text>
+          <Text style={styles.statusLine}>Connection check: {healthCheckLabel}</Text>
         </View>
 
         <View style={styles.card}>

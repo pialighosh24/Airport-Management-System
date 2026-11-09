@@ -60,7 +60,7 @@ export function StatCard({
   tone?: StatTone;
   icon?: ReactNode;
 }) {
-  const toneColor = tone === 'success' ? '#34d399' : tone === 'warning' ? '#fbbf24' : tone === 'danger' ? '#f87171' : tone === 'info' ? '#60a5fa' : '#38bdf8';
+  const toneColor = tone === 'success' ? '#07966f' : tone === 'warning' ? '#e58a16' : tone === 'danger' ? '#dc4444' : tone === 'info' ? '#087eba' : '#20b8e5';
   return (
     <div className="stat-card" style={{ borderTop: `2px solid ${toneColor}` }}>
       <div className="stat-top">
@@ -97,7 +97,7 @@ export function Spinner({ label }: { label?: string }) {
 export function EmptyState({ title, message }: { title: string; message?: string }) {
   return (
     <div className="state-box">
-      <Icon name="airplane" size={28} color="#5d7290" />
+      <Icon name="airplane" size={28} color="#64748b" />
       <div className="title">{title}</div>
       {message ? <div className="message">{message}</div> : null}
     </div>
@@ -107,7 +107,7 @@ export function EmptyState({ title, message }: { title: string; message?: string
 export function ErrorState({ message, onRetry }: { message: string; onRetry?: () => void }) {
   return (
     <div className="state-box">
-      <Icon name="alert" size={28} color="#f87171" />
+      <Icon name="alert" size={28} color="#dc4444" />
       <div className="title">Request failed</div>
       <div className="message">{message}</div>
       {onRetry ? (
@@ -230,7 +230,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
           <div
             key={t.id}
             className="toast"
-            style={t.tone === 'error' ? { borderLeftColor: '#f87171' } : t.tone === 'success' ? { borderLeftColor: '#34d399' } : undefined}
+            style={t.tone === 'error' ? { borderLeftColor: '#dc4444' } : t.tone === 'success' ? { borderLeftColor: '#07966f' } : undefined}
           >
             {t.message}
           </div>

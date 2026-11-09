@@ -31,6 +31,17 @@ export interface AirportRef {
   gate?: string | null;
 }
 
+export interface Airport {
+  code: string;
+  name: string;
+  city: string;
+  country: string;
+  timezone?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  kind?: string;
+}
+
 export interface Flight {
   callsign?: string;
   flightNumber?: string;
@@ -129,6 +140,15 @@ export interface HealthResponse {
     message: string;
   };
   externalApis?: Record<string, ExternalApiStatus>;
+  liveness?: {
+    status: string;
+    checkedAt?: string;
+  };
+  readiness?: {
+    status: string;
+    checkedAt?: string;
+    database?: HealthResponse['database'];
+  };
 }
 
 export interface AdminStats {
@@ -146,7 +166,7 @@ export interface AdminStats {
     disruptions: Disruption[];
     registeredUsers: number;
     airports: { tracked: number };
-    recentActivities: Array<{
+    recentActivities: {
       id: string;
       caseNumber: string;
       flightNumber: string;
@@ -157,7 +177,7 @@ export interface AdminStats {
       summary: string;
       createdAtUtc: string;
       updatedAtUtc: string;
-    }>;
+    }[];
   };
 }
 

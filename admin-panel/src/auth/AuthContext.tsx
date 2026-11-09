@@ -1,8 +1,7 @@
 // AeroNexus Admin Panel — authentication context (backend-issued admin JWT).
 
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { ApiError } from '../api/client';
-import { api } from '../api/client';
+import { ApiError, api } from '../api/client';
 import type { User } from '../api/types';
 
 interface AuthContextValue {
@@ -36,29 +35,38 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem(TOKEN_KEY);
-    if (!storedToken) {
-      setLoading(false);
-      return;
-    }
-    setToken(storedToken);
-    setUser(readStoredUser());
-
-    api
-      .get<{ success: boolean; user: User }>('/api/auth/me')
-      .then((res) => {
-        if (res?.success && res.user) {
-          setUser(res.user);
-          localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+    let cancelled = false;
+    const bootstrap = async () => {
+      const storedToken = localStorage.getItem(TOKEN_KEY);
+      if (storedToken) {
+        try {
+          const res = await api.get<{ success: boolean; user: User }>('/api/auth/me');
+          if (cancelled) return;
+          setToken(storedToken);
+          setUser(readStoredUser());
+          if (res?.success && res.user) {
+            setUser(res.user);
+            localStorage.setItem(USER_KEY, JSON.stringify(res.user));
+          }
+        } catch {
+          if (!cancelled) {
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            setToken(null);
+            setUser(null);
+          }
+        } finally {
+          if (!cancelled) setLoading(false);
         }
-      })
-      .catch(() => {
-        localStorage.removeItem(TOKEN_KEY);
-        localStorage.removeItem(USER_KEY);
-        setToken(null);
-        setUser(null);
-      })
-      .finally(() => setLoading(false));
+        return;
+      }
+      await Promise.resolve();
+      if (!cancelled) setLoading(false);
+    };
+    void bootstrap();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   const loginWithPin = async (pin: string) => {

@@ -28,8 +28,22 @@ export default function Users() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    const loadInitial = async () => {
+      try {
+        const res = await api.get<ApiResponse<User[]>>('/api/admin/users');
+        if (!cancelled && res?.success) setUsers(res.data || []);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof ApiError ? err.message : 'Failed to load users.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void loadInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const changeRole = async (u: User, role: User['role']) => {
     setSavingId(u.id);

@@ -101,7 +101,7 @@ export default function AdminMonitoringScreen() {
               <View style={styles.card}>
                 <View style={styles.cardRow}>
                   <Text style={styles.cardTitle}>Backend Status</Text>
-                  <Badge tone={snapshot.status === 'healthy' ? 'success' : 'danger'} label={(snapshot.status ?? 'unknown').toUpperCase()} />
+                  <Badge tone={snapshot.status === 'healthy' ? 'success' : snapshot.status === 'degraded' ? 'warning' : snapshot.status === 'unhealthy' ? 'danger' : 'neutral'} label={(snapshot.status ?? 'unknown').toUpperCase()} />
                 </View>
                 <Text style={styles.cardText}>{snapshot.message}</Text>
                 <Text style={styles.cardMeta}>Environment: {snapshot.environment}</Text>

@@ -17,7 +17,9 @@ async function getFlightStatusHandler(req, res) {
     const result = await getFlightStatus(identifier);
 
     if (!result.success) {
-      return res.status(200).json({
+      // Provider returned an unsuccessful result: map to 502 Bad Gateway.
+      // Never signal success over the wire for an unsuccessful provider outcome.
+      return res.status(502).json({
         success: false,
         source: result.source,
         error: result.error,

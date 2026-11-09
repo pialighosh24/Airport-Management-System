@@ -132,6 +132,15 @@ export interface HealthCheckResponse {
     openMeteo?: ExternalApiStatus;
     openErApi?: ExternalApiStatus;
   };
+  liveness?: {
+    status: string;
+    checkedAt?: string;
+  };
+  readiness?: {
+    status: string;
+    checkedAt?: string;
+    database?: HealthCheckResponse['database'];
+  };
 }
 
 export interface AdminOpsStats {
@@ -173,6 +182,8 @@ export interface AdminMonitoringSnapshot {
   version: string;
   database: HealthCheckResponse['database'];
   externalApis?: HealthCheckResponse['externalApis'];
+  liveness?: HealthCheckResponse['liveness'];
+  readiness?: HealthCheckResponse['readiness'];
   summary: {
     flights: {
       total: number;

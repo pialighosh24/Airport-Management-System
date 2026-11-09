@@ -1,6 +1,7 @@
 const express = require('express');
 const {
   getAdminStats,
+  getAdminAirports,
   getAdminFlights,
   updateAdminFlightStatus,
   getAdminDisruptions,
@@ -11,6 +12,9 @@ const {
   createAdminFlight,
   updateAdminFlight,
   deleteAdminFlight,
+  createAdminAirport,
+  updateAdminAirport,
+  deleteAdminAirport,
 } = require('../controllers/adminController');
 const {
   getAdminNotices,
@@ -27,6 +31,7 @@ const router = express.Router();
 router.use(authenticateToken, requireAdmin);
 
 router.get('/stats', getAdminStats);
+router.get('/airports', getAdminAirports);
 router.get('/flights', getAdminFlights);
 router.post('/flights', createAdminFlight);
 router.put('/flights/:identifier', updateAdminFlight);
@@ -40,6 +45,9 @@ router.put('/notices/:id', updateAdminNotice);
 router.delete('/notices/:id', deleteAdminNotice);
 router.get('/users', getAdminUsers);
 router.patch('/users/:id/role', updateAdminUserRole);
+router.post('/airports', createAdminAirport);
+router.put('/airports/:id', updateAdminAirport);
+router.delete('/airports/:id', deleteAdminAirport);
 router.get('/monitoring', getAdminMonitoring);
 router.get('/audit-logs', getAdminAuditLogs);
 

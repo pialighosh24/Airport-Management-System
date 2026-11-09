@@ -25,9 +25,9 @@ function authenticateToken(req, res, next) {
   const token = parts[1];
   const payload = User.verifyToken(token);
   if (!payload) {
-    return res.status(403).json({
+    return res.status(401).json({
       success: false,
-      error: 'Forbidden',
+      error: 'Unauthorized',
       message: 'Invalid or expired access token.',
     });
   }

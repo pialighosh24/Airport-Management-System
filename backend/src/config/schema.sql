@@ -171,3 +171,24 @@ CREATE TABLE IF NOT EXISTS flight_fares (
   INDEX idx_fare_dest (destination_iata),
   INDEX idx_fare_price (total_fare_usd)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- ---------------------------------------------------
+-- 7. Flight Operations Notices Table (Admin Mgmt)
+-- ---------------------------------------------------
+CREATE TABLE IF NOT EXISTS notices (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  notice_number VARCHAR(80) NOT NULL UNIQUE,
+  title VARCHAR(255) NOT NULL,
+  category VARCHAR(40) NOT NULL DEFAULT 'operational',
+  severity ENUM('info', 'low', 'medium', 'high', 'critical') NOT NULL DEFAULT 'info',
+  status ENUM('draft', 'published', 'deactivated') NOT NULL DEFAULT 'draft',
+  summary TEXT NOT NULL,
+  body TEXT NOT NULL,
+  effective_from_utc DATETIME NULL,
+  effective_to_utc DATETIME NULL,
+  created_at_utc TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at_utc TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  published_by VARCHAR(100) DEFAULT NULL,
+  INDEX idx_notices_status (status),
+  INDEX idx_notices_created (created_at_utc)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -7,7 +7,7 @@ export interface ChartDatum {
   color?: string;
 }
 
-const PALETTE = ['#38bdf8', '#22d3ee', '#60a5fa', '#34d399', '#fbbf24', '#f87171', '#a78bfa', '#94a3b8'];
+const PALETTE = ['#087eba', '#20b8e5', '#087eba', '#07966f', '#e58a16', '#dc4444', '#64748b', '#94a3b8'];
 
 export function DonutChart({
   data,
@@ -51,10 +51,10 @@ export function DonutChart({
             offset += len;
             return el;
           })}
-        <text x="50%" y="47%" textAnchor="middle" fill="#e8eef8" fontSize="26" fontWeight="800">
+        <text x="50%" y="47%" textAnchor="middle" fill="#172033" fontSize="26" fontWeight="800">
           {total}
         </text>
-        <text x="50%" y="60%" textAnchor="middle" fill="#8fa3c2" fontSize="11">
+        <text x="50%" y="60%" textAnchor="middle" fill="#64748b" fontSize="11">
           {centerLabel || 'Total'}
         </text>
       </svg>
@@ -95,10 +95,10 @@ export function BarChart({
           return (
             <g key={`${d.label}-${i}`}>
               <rect x={x} y={y} width={barWidth} height={Math.max(2, barHeight)} rx={5} fill={d.color || PALETTE[i % PALETTE.length]} />
-              <text x={x + barWidth / 2} y={y - 6} textAnchor="middle" fill="#e8eef8" fontSize="11" fontWeight="700">
+              <text x={x + barWidth / 2} y={y - 6} textAnchor="middle" fill="#172033" fontSize="11" fontWeight="700">
                 {d.value}
               </text>
-              <text x={x + barWidth / 2} y={height - 8} textAnchor="middle" fill="#8fa3c2" fontSize="10">
+              <text x={x + barWidth / 2} y={height - 8} textAnchor="middle" fill="#64748b" fontSize="10">
                 {d.label}
               </text>
             </g>

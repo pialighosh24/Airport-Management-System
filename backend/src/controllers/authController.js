@@ -65,7 +65,6 @@ async function register(req, res) {
         email: createdUser.email,
         fullName: createdUser.fullName,
         role: createdUser.role,
-        staffPin: createdUser.staffPin,
       },
     });
   } catch (err) {
@@ -131,7 +130,6 @@ async function login(req, res) {
         email: user.email,
         fullName: user.full_name || user.fullName,
         role: user.role,
-        staffPin: user.staff_pin || user.staffPin,
       },
     });
   } catch (err) {
@@ -174,7 +172,6 @@ async function staffLogin(req, res) {
           email: user.email,
           fullName: user.full_name || user.fullName,
           role: user.role,
-          staffPin: user.staff_pin || user.staffPin,
         },
       });
     }
@@ -210,7 +207,6 @@ async function staffLogin(req, res) {
           email: user.email,
           fullName: user.full_name || user.fullName,
           role: user.role,
-          staffPin: user.staff_pin || user.staffPin,
         },
       });
     }
@@ -261,7 +257,6 @@ async function getCurrentUser(req, res) {
         email: user.email,
         fullName: user.full_name || user.fullName,
         role: user.role,
-        staffPin: user.staff_pin || user.staffPin,
       },
     });
   } catch (err) {

@@ -34,8 +34,22 @@ export default function Disruptions() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    const loadInitial = async () => {
+      try {
+        const res = await api.get<ApiResponse<Disruption[]>>('/api/admin/disruptions');
+        if (!cancelled && res?.success) setDisruptions(res.data || []);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof ApiError ? err.message : 'Failed to load disruptions.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void loadInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const openEdit = (d: Disruption) => {
     setEditing(d);

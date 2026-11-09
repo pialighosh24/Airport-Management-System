@@ -55,8 +55,22 @@ export default function Notices() {
   }, []);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    const loadInitial = async () => {
+      try {
+        const res = await api.get<ApiResponse<Notice[]>>('/api/admin/notices');
+        if (!cancelled && res?.success) setNotices(res.data || []);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof ApiError ? err.message : 'Failed to load notices.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void loadInitial();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const openCreate = () => {
     setEditing(null);

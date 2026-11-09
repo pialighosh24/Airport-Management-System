@@ -1,8 +1,7 @@
 // AeroNexus Admin Panel — Dashboard page (stats + charts + recent activity).
 
 import { useEffect, useState } from 'react';
-import { api } from '../api/client';
-import { ApiError } from '../api/client';
+import { ApiError, api } from '../api/client';
 import { AdminStats, AdminMonitoring } from '../api/types';
 import { Card, StatCard, ErrorState, Spinner, Badge } from '../components/ui';
 import { DonutChart, BarChart } from '../components/charts';
@@ -32,8 +31,25 @@ export default function Dashboard() {
   };
 
   useEffect(() => {
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    let cancelled = false;
+    const loadInitial = async () => {
+      try {
+        const [statsRes, monitoringRes] = await Promise.all([
+          api.get<AdminStats>('/api/admin/stats'),
+          api.get<AdminMonitoring>('/api/admin/monitoring'),
+        ]);
+        if (!cancelled && statsRes?.success && statsRes.data) setStats(statsRes);
+        if (!cancelled && monitoringRes?.success && monitoringRes.data) setMonitoring(monitoringRes);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof ApiError ? err.message : 'Failed to load administrative dashboard data.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void loadInitial();
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   if (loading) {
@@ -53,13 +69,13 @@ export default function Dashboard() {
   const disruptionsBySeverity = (['critical', 'high', 'medium', 'low'] as const).map((sev) => ({
     label: sev,
     value: openDisruptions.filter((d) => d.severity === sev).length,
-    color: sev === 'critical' ? '#f87171' : sev === 'high' ? '#fb923c' : sev === 'medium' ? '#fbbf24' : '#94a3b8',
+    color: sev === 'critical' ? '#dc4444' : sev === 'high' ? '#e58a16' : sev === 'medium' ? '#e58a16' : '#64748b',
   }));
 
   const statusData = [
-    { label: 'En Route', value: flights.enRoute, color: '#38bdf8' },
-    { label: 'Delayed', value: flights.delayed, color: '#fbbf24' },
-    { label: 'Cancelled', value: flights.cancelled, color: '#f87171' },
+    { label: 'En Route', value: flights.enRoute, color: '#087eba' },
+    { label: 'Delayed', value: flights.delayed, color: '#e58a16' },
+    { label: 'Cancelled', value: flights.cancelled, color: '#dc4444' },
   ];
 
   const healthStatus = monitoring?.data?.status || monitoring?.data?.externalApis ? String(monitoring.data.status) : 'unknown';
@@ -74,7 +90,7 @@ export default function Dashboard() {
         <StatCard label="Tracked Airports" value={stats.data.airports.tracked} tone="success" icon={<Icon name="airplane" size={16} />} foot="Unique origin/destination pairs" />
         <StatCard label="Registered Users" value={stats.data.registeredUsers} tone="accent" icon={<Icon name="users" size={16} />} foot="Accounts on platform" />
         <StatCard label="Open Disruptions" value={stats.data.openDisruptions} tone="warning" icon={<Icon name="disruptions" size={16} />} foot={`${openDisruptions.length} active cases`} />
-        <StatCard label="API Health" value={healthStatus} tone={healthStatus === 'healthy' ? 'success' : 'danger'} icon={<Icon name="monitoring" size={16} />} foot={monitoring?.data?.database ? `DB: ${monitoring.data.database.state}` : 'Monitoring data'} />
+        <StatCard label="API Health" value={healthStatus} tone={healthStatus === 'healthy' ? 'success' : healthStatus === 'degraded' ? 'warning' : healthStatus === 'unhealthy' ? 'danger' : 'info'} icon={<Icon name="monitoring" size={16} />} foot={monitoring?.data?.database ? `DB: ${monitoring.data.database.state}` : 'Monitoring data'} />
       </div>
 
       <div className="grid two">

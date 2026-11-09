@@ -32,7 +32,7 @@ async function getAlerts(req, res) {
 async function saveToWatchlist(req, res) {
   try {
     const { flightNumber, email, alertOnGateChange, alertOnBoarding, delayThresholdMins } = req.body;
-    const userEmail = email || (req.user ? req.user.email : 'guest@aeronexus.com');
+    const userEmail = (req.user && req.user.email) || email || 'guest@aeronexus.com';
 
     if (!flightNumber) {
       return res.status(400).json({
@@ -72,7 +72,7 @@ async function saveToWatchlist(req, res) {
 async function removeFromWatchlist(req, res) {
   try {
     const { flightNumber } = req.params;
-    const userEmail = req.query.email || (req.user ? req.user.email : 'guest@aeronexus.com');
+    const userEmail = (req.user && req.user.email) || req.query.email || 'guest@aeronexus.com';
 
     const updatedWatchlist = await Alert.removeFromWatchlist({
       email: userEmail,
@@ -154,6 +154,34 @@ async function triggerSimulation(req, res) {
 async function markNotificationRead(req, res) {
   try {
     const { id } = req.params;
+    const notifications = await Alert.getNotifications();
+    const notification = notifications.find((n) => String(n.id) === String(id));
+
+    if (!notification) {
+      return res.status(404).json({
+        success: false,
+        error: 'NotFoundError',
+        message: `Notification '${id}' was not found.`,
+      });
+    }
+
+    const isPrivileged = req.user && (req.user.role === 'staff' || req.user.role === 'admin');
+
+    if (!isPrivileged) {
+      const watchlist = await Alert.getWatchlist(req.user ? req.user.email : null);
+      const watchlistFlights = watchlist || [];
+      const inWatchlist = watchlistFlights.some(
+        (f) => String(f).toUpperCase() === String(notification.flightNumber || '').toUpperCase()
+      );
+      if (!inWatchlist) {
+        return res.status(403).json({
+          success: false,
+          error: 'Forbidden',
+          message: 'You do not have permission to access this notification.',
+        });
+      }
+    }
+
     await Alert.markNotificationRead(id);
 
     return res.status(200).json({

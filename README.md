@@ -28,6 +28,7 @@ Built as a BCA academic group project, it demonstrates a complete real-world arc
 16. [Project Demonstration Script](#16-project-demonstration-script)
 17. [Feature-by-Feature Demonstration Checklist](#17-feature-by-feature-demonstration-checklist)
 18. [Technical Communication: Frontend ↔ Backend ↔ MySQL ↔ External APIs](#18-technical-communication-frontend--backend--mysql--external-apis)
+19. [Final Release Readiness, Operations, Backup and Recovery](#19-final-release-readiness-operations-backup-and-recovery)
 
 ---
 
@@ -447,3 +448,53 @@ No UI screenshots have been captured as part of this project yet; the `assets/` 
 ---
 
 *Docs prepared from the actual implementation for the AeroNexus BCA practical examination and GitHub portfolio presentation.*
+
+---
+
+## 19. Final Release Readiness, Operations, Backup and Recovery
+
+### 19.1 Admin Panel
+
+- Location: `admin-panel/` (React + Vite + TypeScript).
+- Commands: `cd admin-panel && npm install && npm run dev` (port 5173); production: `npm run build`.
+- Auth: JWT issued by backend; storage in localStorage (`aeronexus_admin_token` / `aeronexus_admin_user`); protected routes server-side via `requireAdmin`; unauthenticated users receive `401`.
+- Modules: Dashboard, Flight Management, Airport Management, Disruption Management, Notices Management, User Management, Monitoring, Audit Logs, Settings.
+- Airport Management (final release readiness closure): Admin CRUD endpoints added under `/api/admin/airports` (GET list, POST create, PUT update, DELETE delete) with validation (IATA code format) and admin authorization; backend data layer prepared via additive migration `backend/src/config/migrations/20261109_add_airports.sql` (prepared, **not executed** against live DB); Admin UI added at `admin-panel/src/pages/Airports.tsx`.
+- Notices Management uses the MySQL-backed `notices` table and the dedicated fail-fast seed script.
+
+### 19.2 Expo Go and Mobile
+
+- Expo Go (SDK 58) on Android; dev server: `npx expo start --lan -c`; backend URL via `EXPO_PUBLIC_BACKEND_URL` (fallback chain: Expo Go host URI → emulator loopback → localhost).
+- QA commands: `npx tsc --noEmit`, `npm run lint`, `npx expo-doctor` (final: **20/20**), `npx expo start`.
+
+### 19.3 External API requirements
+
+- Backend environment variables: `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, `DB_NAME`, `DB_CONNECTION_LIMIT`, `JWT_SECRET`, `JWT_EXPIRES_IN`, `ADMIN_SETUP_TOKEN`, `CLIENT_ORIGINS`, `OPENSKY_USERNAME`, `OPENSKY_PASSWORD`, `AMADEUS_CLIENT_ID`, `AMADEUS_CLIENT_SECRET`, `AMADEUS_BASE_URL`, `FLIGHTAWARE_API_KEY`, `FLIGHTAWARE_BASE_URL`.
+- Mobile: `EXPO_PUBLIC_BACKEND_URL`. Admin Panel: `VITE_API_BASE_URL`.
+- Honest provider states: OpenSky/Open-Meteo/Open ER-API reported `public`; Amadeus and FlightAware reported `not_configured` until credentials are supplied.
+
+### 19.4 Backup and recovery
+
+- Verified backup: `C:\Users\ADMIN\Documents\AeroNexus-Backups\aeronexus_backup_20261105_044250.sql` (13,154 bytes; MySQL dump, database `aeronexus`).
+- Not to be overwritten or deleted during normal operations.
+
+### 19.5 Production deployment requirements
+
+- Backend hosting with reachable MySQL; same env vars; `NODE_ENV=production` behaviour (demo PIN fallback gated).
+- Admin Panel hosting with `VITE_API_BASE_URL` pointing to production backend.
+- Mobile production build via Expo/EAS; no secrets bundled.
+
+### 19.6 Troubleshooting
+
+- Backend down → `GET /api/health` (liveness + readiness with DB status); demo fallback when DB unavailable.
+- Notices seed fail-fast on DB unavailability; verified read-back before success.
+- Admin Panel API errors surface via `ApiError` with backend status codes.
+
+### 19.7 Final release readiness status (as of final closure)
+
+- Backend tests: **54/54 passing** (17 suites).
+- Admin Panel: lint ✓, typecheck ✓, production build ✓.
+- Mobile: TypeScript ✓, lint ✓, Expo Doctor **20/20**.
+- Notices: persisted and independently verified (2/2 records).
+- Expo SDK: **58** preserved; dependency drift corrected via official tooling.
+- Remaining manual tasks: physical Android device E2E, EAS production build, live Amadeus/FlightAware credential configuration, executing prepared airport migration (separate authorization).

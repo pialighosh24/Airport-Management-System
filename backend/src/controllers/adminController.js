@@ -13,6 +13,7 @@ const User = require('../models/User');
 const { DEMO_FLIGHTS } = require('../data/demoData');
 const { collectHealthData } = require('./healthController');
 const { recordAdminAudit } = require('../services/auditService');
+const Airport = require('../models/Airport');
 
 // Flight statuses considered active / in the operational airspace
 const ACTIVE_STATUSES = ['en_route', 'departed', 'approaching'];
@@ -473,8 +474,168 @@ const deleteAdminFlight = async (req, res) => {
   }
 };
 
+/**
+ * @route   GET /api/admin/airports
+ * @desc    List operational airports for the Admin Panel (optional code/city/country search)
+ */
+const getAdminAirports = async (req, res) => {
+  try {
+    if (!isDatabaseConnected()) {
+      return res.status(503).json({
+        success: false,
+        error: 'DatabaseUnavailable',
+        message: 'Airport management requires an active database connection. Current mode: demo fallback.',
+      });
+    }
+
+    const filters = {};
+    if (req.query.code) filters.code = String(req.query.code).toUpperCase();
+    if (req.query.city) filters.city = String(req.query.city);
+    if (req.query.country) filters.country = String(req.query.country);
+
+    const airports = await Airport.find(filters);
+
+    return res.status(200).json({
+      success: true,
+      count: airports.length,
+      data: airports,
+    });
+  } catch (err) {
+    console.error('❌ [Admin Airports Error]:', err);
+    return res.status(500).json({
+      success: false,
+      error: 'ServerError',
+      message: 'Failed to retrieve the administrative airport list.',
+    });
+  }
+};
+
+/**
+ * @route   POST /api/admin/airports
+ * @desc    Create an operational airport record
+ */
+const createAdminAirport = async (req, res) => {
+  try {
+    const airport = req.body || {};
+    if (!airport.code || !airport.name) {
+      return res.status(400).json({ success: false, error: 'ValidationError', message: 'Airport code and name are required.' });
+    }
+    if (!/^[A-Z]{3}$/.test(String(airport.code).toUpperCase())) {
+      return res.status(400).json({ success: false, error: 'ValidationError', message: `Invalid airport code '${airport.code}'. Expected a 3-letter IATA code.` });
+    }
+
+    const created = await Airport.create({
+      code: String(airport.code).toUpperCase(),
+      name: String(airport.name),
+      city: String(airport.city || ''),
+      country: String(airport.country || ''),
+      timezone: airport.timezone || null,
+      latitude: airport.latitude !== undefined ? Number(airport.latitude) : null,
+      longitude: airport.longitude !== undefined ? Number(airport.longitude) : null,
+      kind: airport.kind || 'airport',
+    });
+
+    recordAdminAudit({
+      action: 'AIRPORT_CREATED',
+      actor: req.user?.username || req.user?.email || null,
+      target: String(airport.code).toUpperCase(),
+      severity: 'info',
+      status: 'success',
+      metadata: { code: String(airport.code).toUpperCase(), name: String(airport.name) },
+    });
+
+    return res.status(201).json({ success: true, message: 'Airport saved successfully.', data: created });
+  } catch (err) {
+    console.error('❌ [Admin Airport Create Error]:', err);
+    return res.status(500).json({ success: false, error: 'ServerError', message: 'Failed to create airport record.' });
+  }
+};
+
+/**
+ * @route   PUT /api/admin/airports/:id
+ * @desc    Update an operational airport record (keyed by IATA code)
+ */
+const updateAdminAirport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const airport = req.body || {};
+    const code = String(id || airport.code || '').toUpperCase();
+    if (!code) {
+      return res.status(400).json({ success: false, error: 'ValidationError', message: 'Airport code is required.' });
+    }
+    if (!airport.name) {
+      return res.status(400).json({ success: false, error: 'ValidationError', message: 'Airport name is required.' });
+    }
+    if (!/^[A-Z]{3}$/.test(code)) {
+      return res.status(400).json({ success: false, error: 'ValidationError', message: `Invalid airport code '${code}'. Expected a 3-letter IATA code.` });
+    }
+
+    const updated = await Airport.update(code, {
+      name: String(airport.name),
+      city: String(airport.city || ''),
+      country: String(airport.country || ''),
+      timezone: airport.timezone || null,
+      latitude: airport.latitude !== undefined ? Number(airport.latitude) : null,
+      longitude: airport.longitude !== undefined ? Number(airport.longitude) : null,
+      kind: airport.kind || 'airport',
+    });
+
+    if (!updated) {
+      return res.status(404).json({ success: false, error: 'NotFoundError', message: `Airport '${id}' was not found.` });
+    }
+
+    recordAdminAudit({
+      action: 'AIRPORT_UPDATED',
+      actor: req.user?.username || req.user?.email || null,
+      target: code,
+      severity: 'info',
+      status: 'success',
+      metadata: { code, name: updated.name },
+    });
+
+    return res.status(200).json({ success: true, message: 'Airport updated successfully.', data: updated });
+  } catch (err) {
+    console.error('❌ [Admin Airport Update Error]:', err);
+    return res.status(500).json({ success: false, error: 'ServerError', message: 'Failed to update airport record.' });
+  }
+};
+
+/**
+ * @route   DELETE /api/admin/airports/:id
+ * @desc    Delete an operational airport record (keyed by IATA code)
+ */
+const deleteAdminAirport = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const code = String(id || '').toUpperCase();
+    if (!code) {
+      return res.status(400).json({ success: false, error: 'ValidationError', message: 'Airport code is required.' });
+    }
+
+    const result = await Airport.delete(code);
+    if (!result || !result.deletedCount) {
+      return res.status(404).json({ success: false, error: 'NotFoundError', message: `Airport '${id}' was not found.` });
+    }
+
+    recordAdminAudit({
+      action: 'AIRPORT_DELETED',
+      actor: req.user?.username || req.user?.email || null,
+      target: code,
+      severity: 'info',
+      status: 'success',
+      metadata: { code },
+    });
+
+    return res.status(200).json({ success: true, message: 'Airport deleted successfully.', data: { deletedCount: result.deletedCount } });
+  } catch (err) {
+    console.error('❌ [Admin Airport Delete Error]:', err);
+    return res.status(500).json({ success: false, error: 'ServerError', message: 'Failed to delete airport record.' });
+  }
+};
+
 module.exports = {
   getAdminStats,
+  getAdminAirports,
   getAdminFlights,
   updateAdminFlightStatus,
   getAdminDisruptions,
@@ -485,4 +646,7 @@ module.exports = {
   createAdminFlight,
   updateAdminFlight,
   deleteAdminFlight,
+  createAdminAirport,
+  updateAdminAirport,
+  deleteAdminAirport,
 };

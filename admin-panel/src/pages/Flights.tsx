@@ -135,8 +135,22 @@ export default function Flights() {
   }, [statusFilter, search]);
 
   useEffect(() => {
-    void load();
-  }, [load]);
+    let cancelled = false;
+    const loadFiltered = async () => {
+      try {
+        const res = await api.get<ApiResponse<Flight[]>>(`/api/admin/flights?status=${encodeURIComponent(statusFilter)}&search=${encodeURIComponent(search)}`);
+        if (!cancelled && res?.success) setFlights(res.data || []);
+      } catch (err) {
+        if (!cancelled) setError(err instanceof ApiError ? err.message : 'Failed to load flights.');
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    void loadFiltered();
+    return () => {
+      cancelled = true;
+    };
+  }, [statusFilter, search]);
 
   const openCreate = () => {
     setEditing(null);
@@ -261,7 +275,7 @@ export default function Flights() {
         <div className="row mb-16" style={{ gap: 10, flexWrap: 'wrap' }}>
           <div style={{ position: 'relative', minWidth: 240, flex: 1 }}>
             <input className="input" style={{ paddingLeft: 32 }} placeholder="Search by flight number / callsign" value={search} onChange={(e) => setSearch(e.target.value)} />
-            <span style={{ position: 'absolute', left: 10, top: 10, color: '#5d7290' }}><Icon name="search" size={14} /></span>
+            <span style={{ position: 'absolute', left: 10, top: 10, color: '#64748b' }}><Icon name="search" size={14} /></span>
           </div>
           <select className="select" style={{ width: 220 }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
             <option value="">All Statuses</option>
