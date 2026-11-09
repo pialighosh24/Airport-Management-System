@@ -6,6 +6,8 @@ const fareRoutes = require('./fareRoutes');
 const weatherRoutes = require('./weatherRoutes');
 const opsRoutes = require('./opsRoutes');
 const alertRoutes = require('./alertRoutes');
+const adminRoutes = require('./adminRoutes');
+const { getPublicNotices } = require('../controllers/adminController');
 
 const router = express.Router();
 
@@ -17,5 +19,7 @@ router.use('/fares', fareRoutes);        // /api/fares & /api/fares/exchange-rat
 router.use('/weather', weatherRoutes);    // /api/weather
 router.use('/ops', opsRoutes);            // /api/ops
 router.use('/alerts', alertRoutes);      // /api/alerts
+router.use('/admin', adminRoutes);        // /api/admin/*
+router.get('/notices', getPublicNotices); // /api/notices (Public notices for mobile app)
 
 module.exports = router;

@@ -40,7 +40,7 @@ export default function RootLayout() {
               <Ionicons
                 name={focused ? 'radio' : 'radio-outline'}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
@@ -53,7 +53,7 @@ export default function RootLayout() {
               <Ionicons
                 name={focused ? 'business' : 'business-outline'}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
@@ -66,7 +66,7 @@ export default function RootLayout() {
               <Ionicons
                 name={focused ? 'pricetag' : 'pricetag-outline'}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
@@ -79,7 +79,7 @@ export default function RootLayout() {
               <Ionicons
                 name={focused ? 'notifications' : 'notifications-outline'}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
@@ -92,7 +92,7 @@ export default function RootLayout() {
               <Ionicons
                 name={focused ? 'shield-checkmark' : 'shield-checkmark-outline'}
                 size={22}
-                color={color}
+                color={color as string}
               />
             ),
           }}
@@ -101,6 +101,15 @@ export default function RootLayout() {
           name="explore"
           options={{
             href: null, // Hide template explore screen
+          }}
+        />
+        <Tabs.Screen
+          name="admin"
+          options={{
+            title: 'Admin',
+            tabBarItemStyle: { display: 'none' },
+            tabBarStyle: { display: 'none' },
+            tabBarButton: () => null,
           }}
         />
       </Tabs>

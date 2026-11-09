@@ -23,7 +23,7 @@ interface NoticeItem {
   cardBorderLeft: string;
 }
 
-const NOTICES: NoticeItem[] = [
+const DEFAULT_NOTICES: NoticeItem[] = [
   {
     id: 'notice-1',
     category: 'DATA QUALITY',
@@ -87,6 +87,9 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
   const isLoadingFlights = flight?.isLoadingFlights ?? false;
   const flightError = flight?.flightError || null;
 
+  // Active notices list (initialized with defaults, dynamically synced from backend)
+  const [noticesList, setNoticesList] = useState<NoticeItem[]>(DEFAULT_NOTICES);
+
   // Notice card carousel index
   const [currentIndex, setCurrentIndex] = useState(0);
 
@@ -94,6 +97,7 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
   const [backendStatus, setBackendStatus] = useState<string | null>(null);
   const [isVerifyingHealth, setIsVerifyingHealth] = useState<boolean>(true);
 
+  // Verify backend health
   useEffect(() => {
     let isMounted = true;
     async function verifyHealth() {
@@ -102,14 +106,12 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
         const health = await apiService.getHealth();
         if (!isMounted) return;
         if (health && health.status) {
-          // Use actual response from backend (e.g. "online")
           setBackendStatus(health.status);
         } else {
           setBackendStatus(null);
         }
       } catch {
         if (!isMounted) return;
-        // If status cannot be verified, display "STATUS UNKNOWN"
         setBackendStatus(null);
       } finally {
         if (isMounted) setIsVerifyingHealth(false);
@@ -123,13 +125,90 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
     };
   }, [serverUrl]);
 
+  // Load notices from backend (syncs admin updates to mobile radar)
+  useEffect(() => {
+    let isMounted = true;
+    async function syncNotices() {
+      try {
+        const res = await apiService.getPublicNotices();
+        if (!isMounted) return;
+        if (res && res.success && Array.isArray(res.data) && res.data.length > 0) {
+          const mapped: NoticeItem[] = res.data.map((n) => {
+            const cat = (n.category || '').toUpperCase();
+            let icon: keyof typeof Ionicons.glyphMap = 'information-circle-outline';
+            let categoryColor = '#0284C7';
+            let categoryBg = '#E0F2FE';
+            let categoryBorder = '#BAE6FD';
+            let cardBorderLeft = '#0284C7';
+
+            if (cat.includes('DATA')) {
+              icon = 'time-outline';
+              categoryColor = '#0284C7';
+              categoryBg = '#E0F2FE';
+              categoryBorder = '#BAE6FD';
+              cardBorderLeft = '#0284C7';
+            } else if (cat.includes('TRACK') || cat.includes('VISIBIL')) {
+              icon = 'locate-outline';
+              categoryColor = '#0D9488';
+              categoryBg = '#CCFBF1';
+              categoryBorder = '#99F6E4';
+              cardBorderLeft = '#0D9488';
+            } else if (cat.includes('AIRPORT')) {
+              icon = 'business-outline';
+              categoryColor = '#6366F1';
+              categoryBg = '#EEF2FF';
+              categoryBorder = '#C7D2FE';
+              cardBorderLeft = '#6366F1';
+            } else if (cat.includes('WEATHER')) {
+              icon = 'cloudy-outline';
+              categoryColor = '#D97706';
+              categoryBg = '#FEF3C7';
+              categoryBorder = '#FDE68A';
+              cardBorderLeft = '#D97706';
+            } else {
+              icon = 'megaphone-outline';
+              categoryColor = '#0284C7';
+              categoryBg = '#EFF6FF';
+              categoryBorder = '#BAE6FD';
+              cardBorderLeft = '#0284C7';
+            }
+
+            return {
+              id: n.id,
+              category: n.category,
+              title: n.title,
+              message: n.message,
+              icon,
+              categoryColor,
+              categoryBg,
+              categoryBorder,
+              cardBorderLeft,
+            };
+          });
+          setNoticesList(mapped);
+        }
+      } catch {
+        // Fallback to DEFAULT_NOTICES is already in state
+      }
+    }
+
+    syncNotices();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [serverUrl]);
+
   // Carousel navigation handlers
+  const safeNotices = noticesList.length > 0 ? noticesList : DEFAULT_NOTICES;
+  const currentNotice = safeNotices[currentIndex] || safeNotices[0];
+
   const handlePrev = () => {
-    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : NOTICES.length - 1));
+    setCurrentIndex((prev) => (prev > 0 ? prev - 1 : safeNotices.length - 1));
   };
 
   const handleNext = () => {
-    setCurrentIndex((prev) => (prev < NOTICES.length - 1 ? prev + 1 : 0));
+    setCurrentIndex((prev) => (prev < safeNotices.length - 1 ? prev + 1 : 0));
   };
 
   // Horizontal swipe gesture responder
@@ -138,7 +217,6 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_, gestureState) => {
-          // Detect intentional horizontal drag (>15px and horizontal dominance)
           return (
             Math.abs(gestureState.dx) > 15 &&
             Math.abs(gestureState.dx) > Math.abs(gestureState.dy) * 1.3
@@ -146,16 +224,14 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
         },
         onPanResponderRelease: (_, gestureState) => {
           if (gestureState.dx > 30) {
-            setCurrentIndex((prev) => (prev > 0 ? prev - 1 : NOTICES.length - 1));
+            handlePrev();
           } else if (gestureState.dx < -30) {
-            setCurrentIndex((prev) => (prev < NOTICES.length - 1 ? prev + 1 : 0));
+            handleNext();
           }
         },
       }),
-    []
+    [safeNotices.length]
   );
-
-  const currentNotice = NOTICES[currentIndex];
 
   // 1. Backend Availability Badge calculation (honest representation from /api/health)
   let backendBadgeText = 'STATUS UNKNOWN';
@@ -180,7 +256,6 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
       backendDotColor = '#F59E0B';
     }
   } else {
-    // If backend cannot be verified, display "STATUS UNKNOWN"
     backendBadgeText = 'STATUS UNKNOWN';
     backendBadgeColor = '#64748B';
     backendBadgeBg = '#F1F5F9';
@@ -223,7 +298,7 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" />
 
       {/* Header Row: Heading and Separate Status Badges */}
       <View style={styles.headerRow}>
@@ -310,7 +385,7 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
           {/* Navigation Controls: Position Indicator + Arrow Buttons */}
           <View style={styles.navControls}>
             <Text style={styles.positionText}>
-              {currentIndex + 1} of {NOTICES.length}
+              {currentIndex + 1} of {safeNotices.length}
             </Text>
 
             <TouchableOpacity
@@ -343,7 +418,7 @@ export function FlightOperationsNotice({ serverUrl: propServerUrl, radarMode: pr
 
         {/* Position Dots Indicator */}
         <View style={styles.dotsRow}>
-          {NOTICES.map((_, idx) => (
+          {safeNotices.map((_, idx) => (
             <View
               key={idx}
               style={[

@@ -13,7 +13,7 @@ export function Header({ title = 'AeroNexus', subtitle = 'Smart Flight Tracking'
 
   return (
     <View style={styles.container}>
-      <StatusBar barStyle="dark-content" backgroundColor="#FFFFFF" />
+      <StatusBar barStyle="dark-content" />
       <View style={styles.topRow}>
         <View style={styles.branding}>
           <View style={styles.iconCircle}>

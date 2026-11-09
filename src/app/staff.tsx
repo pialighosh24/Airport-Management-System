@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { Header } from '@/components/common/Header';
 import { DisruptionCard } from '@/components/staff/DisruptionCard';
 import { CreateDisruptionModal } from '@/components/staff/CreateDisruptionModal';
@@ -38,33 +39,35 @@ export default function StaffScreen() {
     }
   };
 
+  // Filter disruption cases based on tab selection
   const filteredCases = disruptionCases.filter((item) => {
     if (statusFilter === 'all') return true;
     return item.status === statusFilter;
   });
 
-  const totalPax = disruptionCases.reduce((sum, item) => sum + item.impactedPassengers, 0);
-  const criticalCount = disruptionCases.filter((item) => item.severity === 'critical').length;
-  const openCount = disruptionCases.filter((item) => item.status === 'open').length;
+  const openCount = disruptionCases.filter((c) => c.status === 'open').length;
+  const criticalCount = disruptionCases.filter((c) => c.severity === 'critical').length;
+  const totalPax = disruptionCases.reduce((sum, c) => sum + (c.impactedPassengers || 0), 0);
 
+  // If not authenticated, render Staff Security Access Gate
   if (!isStaffAuthenticated) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <View style={styles.container}>
           <Header
-            title="AeroNexus Ops Portal"
-            subtitle="Staff Authentication & Disruption Control"
+            title="Ground Staff Portal"
+            subtitle="Authorised Operations Personnel Only"
           />
 
-          <View style={styles.loginCardWrapper}>
-            <View style={styles.loginCard}>
-              <View style={styles.lockIconCircle}>
-                <Ionicons name="shield-half" size={32} color="#38BDF8" />
+          <View style={styles.authContainer}>
+            <View style={styles.authCard}>
+              <View style={styles.authIconRing}>
+                <Ionicons name="shield-half-outline" size={32} color="#0284C7" />
               </View>
 
-              <Text style={styles.loginTitle}>Secure Staff Operations</Text>
-              <Text style={styles.loginDesc}>
-                Restricted portal for Network Duty Managers, Station Ops, and Dispatchers to manage live flight disruption cases.
+              <Text style={styles.authTitle}>Restricted Operations Gate</Text>
+              <Text style={styles.authSubtitle}>
+                Access is monitored and restricted to verified station managers, ramp agents, and OCC coordinators.
               </Text>
 
               <View style={styles.pinSection}>
@@ -92,6 +95,15 @@ export default function StaffScreen() {
                   <Ionicons name="key-outline" size={14} color="#38BDF8" />
                   <Text style={styles.quickUnlockText}>1-Tap Fast Unlock (PIN: 2026)</Text>
                 </TouchableOpacity>
+
+                {/* Admin Portal Shortcut Link */}
+                <TouchableOpacity
+                  style={styles.adminPortalLinkBtn}
+                  onPress={() => router.push('/admin' as any)}
+                >
+                  <Ionicons name="shield-checkmark" size={14} color="#0284C7" />
+                  <Text style={styles.adminPortalLinkText}>Open Admin Dashboard →</Text>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
@@ -117,10 +129,17 @@ export default function StaffScreen() {
             </Text>
           </View>
 
-          <TouchableOpacity style={styles.logoutBtn} onPress={logoutStaff}>
-            <Ionicons name="log-out-outline" size={14} color="#DC2626" />
-            <Text style={styles.logoutBtnText}>Lock</Text>
-          </TouchableOpacity>
+          <View style={styles.sessionActions}>
+            <TouchableOpacity style={styles.adminShortcutBtn} onPress={() => router.push('/admin' as any)}>
+              <Ionicons name="shield-checkmark-outline" size={12} color="#0284C7" />
+              <Text style={styles.adminShortcutBtnText}>Admin</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity style={styles.logoutBtn} onPress={logoutStaff}>
+              <Ionicons name="log-out-outline" size={14} color="#DC2626" />
+              <Text style={styles.logoutBtnText}>Lock</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Operational Metrics Cards */}
@@ -141,47 +160,47 @@ export default function StaffScreen() {
           </View>
         </View>
 
-        {/* Action Button & Filters */}
+        {/* Action Header: Create Case & Filter */}
         <View style={styles.actionHeader}>
+          <View style={styles.filterSection}>
+            <Text style={styles.sectionHeading}>
+              Active Station Incidents ({filteredCases.length})
+            </Text>
+
+            <View style={styles.filterPillsRow}>
+              {(['all', 'open', 'investigating', 'resolved'] as const).map((s) => (
+                <TouchableOpacity
+                  key={s}
+                  style={[styles.filterPill, statusFilter === s && styles.filterPillActive]}
+                  onPress={() => setStatusFilter(s)}
+                >
+                  <Text
+                    style={[styles.filterPillText, statusFilter === s && styles.filterPillTextActive]}
+                  >
+                    {s.toUpperCase()}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
           <TouchableOpacity
             style={styles.createCaseBtn}
             onPress={() => setCreateModalVisible(true)}
           >
             <Ionicons name="add-circle" size={16} color="#FFFFFF" />
-            <Text style={styles.createCaseBtnText}>Create Disruption Case</Text>
+            <Text style={styles.createCaseBtnText}>Log New Incident</Text>
           </TouchableOpacity>
-
-          <View style={styles.filterPillsRow}>
-            {(['all', 'open', 'investigating', 'resolved'] as const).map((status) => (
-              <TouchableOpacity
-                key={status}
-                style={[
-                  styles.filterPill,
-                  statusFilter === status && styles.filterPillActive,
-                ]}
-                onPress={() => setStatusFilter(status)}
-              >
-                <Text
-                  style={[
-                    styles.filterPillText,
-                    statusFilter === status && styles.filterPillTextActive,
-                  ]}
-                >
-                  {status.toUpperCase()}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
         </View>
 
-        {/* Disruption Cases List */}
-        <ScrollView style={styles.casesList} showsVerticalScrollIndicator={false}>
-          {filteredCases.map((item) => (
-            <DisruptionCard key={item.id} item={item} />
+        {/* Disruption Cases Feed */}
+        <ScrollView style={styles.casesList} contentContainerStyle={{ paddingBottom: 24 }}>
+          {filteredCases.map((disruption) => (
+            <DisruptionCard key={disruption.id} item={disruption} />
           ))}
         </ScrollView>
 
-        {/* Create Case Modal Form */}
+        {/* Incident Creation Modal Sheet */}
         <CreateDisruptionModal
           visible={createModalVisible}
           onClose={() => setCreateModalVisible(false)}
@@ -200,95 +219,118 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#F8FAFC',
   },
-  loginCardWrapper: {
+  authContainer: {
     flex: 1,
-    padding: 20,
     justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
   },
-  loginCard: {
+  authCard: {
+    width: '100%',
+    maxWidth: 380,
     backgroundColor: '#FFFFFF',
-    borderRadius: 16,
+    borderRadius: 14,
     padding: 24,
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    alignItems: 'center',
     shadowColor: '#0F172A',
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.08,
     shadowRadius: 10,
-    elevation: 4,
+    elevation: 3,
   },
-  lockIconCircle: {
+  authIconRing: {
     width: 60,
     height: 60,
     borderRadius: 30,
     backgroundColor: '#E0F2FE',
     alignItems: 'center',
     justifyContent: 'center',
-    marginBottom: 14,
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: '#BAE6FD',
   },
-  loginTitle: {
+  authTitle: {
     fontSize: 18,
     fontWeight: '800',
     color: '#0F172A',
-    marginBottom: 6,
+    textAlign: 'center',
   },
-  loginDesc: {
+  authSubtitle: {
     fontSize: 12,
     color: '#64748B',
     textAlign: 'center',
-    lineHeight: 18,
-    marginBottom: 20,
+    marginTop: 6,
+    lineHeight: 16,
   },
   pinSection: {
     width: '100%',
+    marginTop: 20,
   },
   pinLabel: {
-    fontSize: 11,
+    fontSize: 12,
     fontWeight: '700',
-    color: '#64748B',
-    marginBottom: 6,
-    textTransform: 'uppercase',
+    color: '#334155',
+    marginBottom: 8,
   },
   pinInput: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#F8FAFC',
+    borderWidth: 1,
+    borderColor: '#CBD5E1',
     borderRadius: 8,
     paddingHorizontal: 14,
     paddingVertical: 10,
-    color: '#0F172A',
     fontSize: 14,
-    borderWidth: 1,
-    borderColor: '#E2E8F0',
-    marginBottom: 12,
+    color: '#0F172A',
+    textAlign: 'center',
+    letterSpacing: 2,
+    fontWeight: '700',
   },
   loginBtn: {
     backgroundColor: '#0284C7',
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
-    marginBottom: 10,
+    marginTop: 12,
   },
   loginBtnText: {
     color: '#FFFFFF',
-    fontWeight: '700',
+    fontWeight: '800',
     fontSize: 13,
   },
   quickUnlockBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 8,
-    gap: 6,
-    backgroundColor: '#F1F5F9',
+    marginTop: 12,
+    paddingVertical: 8,
+    borderRadius: 6,
     borderWidth: 1,
-    borderColor: '#E2E8F0',
+    borderColor: '#BAE6FD',
+    backgroundColor: '#F0F9FF',
+    gap: 6,
   },
   quickUnlockText: {
     color: '#0284C7',
-    fontSize: 12,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  adminPortalLinkBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 10,
+    paddingVertical: 8,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#E2E8F0',
+    backgroundColor: '#F8FAFC',
+    gap: 6,
+  },
+  adminPortalLinkText: {
+    color: '#0284C7',
+    fontSize: 11,
     fontWeight: '700',
   },
   staffSessionBar: {
@@ -297,7 +339,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#FFFFFF',
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderBottomWidth: 1,
     borderBottomColor: '#E2E8F0',
   },
@@ -305,19 +347,41 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    flex: 1,
   },
   sessionText: {
-    fontSize: 12,
-    color: '#64748B',
+    fontSize: 11,
+    color: '#475569',
+  },
+  sessionActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  adminShortcutBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: '#E0F2FE',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: '#BAE6FD',
+  },
+  adminShortcutBtnText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: '#0284C7',
   },
   logoutBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FEE2E2',
-    paddingHorizontal: 10,
+    gap: 4,
+    backgroundColor: '#FEF2F2',
+    paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 6,
-    gap: 4,
     borderWidth: 1,
     borderColor: '#FECACA',
   },
@@ -329,39 +393,34 @@ const styles = StyleSheet.create({
   metricsRow: {
     flexDirection: 'row',
     paddingHorizontal: 16,
-    paddingTop: 12,
+    paddingVertical: 10,
     gap: 8,
   },
   metricCard: {
     flex: 1,
     backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#E2E8F0',
-    shadowColor: '#0F172A',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
   },
   metricVal: {
-    fontSize: 20,
-    fontWeight: '900',
-    color: '#0284C7',
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   metricTitle: {
     fontSize: 10,
-    fontWeight: '700',
     color: '#64748B',
     marginTop: 2,
-    textTransform: 'uppercase',
+    fontWeight: '600',
   },
   actionHeader: {
     paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingVertical: 8,
+    gap: 8,
   },
   createCaseBtn: {
     flexDirection: 'row',
@@ -371,12 +430,19 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     borderRadius: 8,
     gap: 6,
-    marginBottom: 10,
   },
   createCaseBtnText: {
     color: '#FFFFFF',
-    fontWeight: '700',
     fontSize: 13,
+    fontWeight: '700',
+  },
+  filterSection: {
+    gap: 6,
+  },
+  sectionHeading: {
+    fontSize: 12,
+    fontWeight: '800',
+    color: '#0F172A',
   },
   filterPillsRow: {
     flexDirection: 'row',
