@@ -123,8 +123,9 @@ export interface BaggageRules {
   cabinBagIncluded: boolean;
   cabinBagWeightKg: number | null; // e.g. 7kg or 10kg
   checkedBagIncluded: boolean;
-  checkedBagWeightKg: number | null; // e.g. 23kg
-  extraCheckedBagFeeUsd: number | null; // fee if checked bag not included
+  checkedBagWeightKg: number | null; // e.g. 15kg or 23kg
+  extraCheckedBagFeeUsd: number | null; // fee if checked bag not included (USD)
+  extraCheckedBagFeeInr?: number | null; // fee if checked bag not included (INR)
 }
 
 export interface FlightFare {
@@ -133,12 +134,19 @@ export interface FlightFare {
   airlineCode: string;
   flightNumber: string;
   originIata: string;
+  originCity?: string;
   destinationIata: string;
+  destinationCity?: string;
   departureTimeUtc: string;
   arrivalTimeUtc: string;
   durationMinutes: number;
   stopsCount: number;              // 0 for non-stop
   travelClass: 'Economy' | 'Premium Economy' | 'Business';
+  // Primary INR Currency (Default per Blueprint v2.0)
+  totalFareInr: number;
+  baseFareInr: number;
+  taxesAndAirportFeesInr: number;
+  // Secondary USD Currency (via FX rate)
   baseFareUsd: number;
   taxesAndAirportFeesUsd: number;
   totalFareUsd: number;
@@ -146,6 +154,9 @@ export interface FlightFare {
   cancellationPolicy: string;
   availableSeats: number;
   isTransparentGuaranteed: boolean; // Guarantee of zero hidden fees at checkout
+  supplierName?: string;
+  priceCheckStatus?: 'verified' | 'pending' | 'price_increased';
+  bookingUrl?: string;
 }
 
 export interface DisruptionCase {
@@ -185,4 +196,191 @@ export interface AlertNotification {
   message: string;
   timestampUtc: string;
   read: boolean;
+}
+
+export interface AirportWeather {
+  success: boolean;
+  isLive: boolean;
+  source: string;
+  disclaimer: string;
+  coordinates: {
+    latitude: number;
+    longitude: number;
+    elevation: number | null;
+  };
+  weather: {
+    temperatureC: number | null;
+    relativeHumidityPct: number | null;
+    windSpeedKnots: number | null;
+    windDirectionDeg: number | null;
+    weatherCode: number | null;
+    condition: string;
+  };
+  forecastTimeUtc: string | null;
+  retrievedAtUtc: string;
+  airport?: {
+    code: string;
+    name: string | null;
+  } | null;
+  fromCache?: boolean;
+}
+
+
+
+// Admin Panel Types
+export interface AdminSession {
+  token: string;
+  username: string;
+  role: 'admin';
+  expiresAt: string;
+}
+
+export interface FlightNotice {
+  id: string;
+  category: string;
+  title: string;
+  message: string;
+  priority?: 'normal' | 'high' | 'urgent';
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+}
+
+export interface ProviderIntegrationStatus {
+  id: string;
+  name: string;
+  purpose: string;
+  requiresKey: boolean;
+  configured: boolean | null;
+  checkMethod: string;
+  status: 'connected' | 'unavailable' | 'not_configured' | 'unknown';
+  detail: string;
+  httpStatus: number | null;
+  latencyMs: number | null;
+  checkedAt: string | null;
+}
+
+export interface AdminDashboardData {
+  success: boolean;
+  timestamp: string;
+  system: {
+    uptimeSeconds: number;
+    nodeEnv: string;
+    version: string;
+    database: {
+      configured: boolean;
+      connected: boolean;
+      state: string;
+      mode: string;
+      message: string;
+    };
+  };
+  metrics: {
+    flights: {
+      total: number;
+      mode: string;
+      isDemo: boolean;
+      label: string;
+    };
+    airports: {
+      total: number;
+      source: string;
+    };
+    users: {
+      total: number;
+      status: string;
+      message: string;
+      available: boolean;
+    };
+    notices: {
+      total: number;
+      active: number;
+    };
+  };
+}
+
+export interface AirlineCarrier {
+  code: string;
+  icao: string;
+  name: string;
+  country: string;
+  hub: string;
+  status: string;
+  activeFlightsCount: number;
+  fleetStatus: string;
+  dataSource: string;
+}
+
+export interface AuditEvent {
+  id: string;
+  timestamp: string;
+  actor: string;
+  action: string;
+  category: string;
+  details: string;
+  ip: string;
+  status: 'SUCCESS' | 'FAILURE';
+}
+
+export interface SystemLogItem {
+  id: string;
+  timestamp: string;
+  level: 'info' | 'warn' | 'error' | 'debug';
+  source: string;
+  message: string;
+}
+
+export interface SystemConfig {
+  pollingIntervalSeconds: number;
+  cacheTtlSeconds: number;
+  quietHours: {
+    enabled: boolean;
+    startTime: string;
+    endTime: string;
+    timezone: string;
+  };
+  activeProviders: {
+    amadeus: boolean;
+    openSky: boolean;
+    flightAware: boolean;
+    openMeteo: boolean;
+    freeAirportDb: boolean;
+  };
+  alertThresholds: {
+    latencyWarningMs: number;
+    consecutiveFailuresBeforeDegraded: number;
+  };
+  maintenanceMode: boolean;
+  updatedAt?: string;
+  updatedBy?: string;
+}
+
+export interface DatabaseDiagnostics {
+  configured: boolean;
+  connected: boolean;
+  state: string;
+  mode: string;
+  message: string;
+  queryLatencyMs: number | null;
+  timestamp: string;
+  pool?: {
+    engine: string;
+    ssl: boolean;
+    timeoutMs: number;
+  };
+}
+
+/** Ground handling task from the feature/dashboard Ground Operations engine (in-memory store). */
+export interface GroundOperationTask {
+  id: string;
+  taskNumber: string;
+  flightNumber: string | null;
+  type: string;
+  status: string;
+  assignedTo: string | null;
+  priority: string;
+  notes: string | null;
+  createdAtUtc: string;
+  updatedAtUtc: string;
+  isDemo: boolean;
 }

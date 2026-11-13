@@ -1,5 +1,5 @@
 /**
- * AeroNexus — Mobile API Service
+ * AeroNexus â€” Mobile API Service
  * 
  * Reusable HTTP client for communicating with the Express backend.
  * 
@@ -12,7 +12,19 @@
 
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
-import { AircraftTelemetry, AirportScheduleItem, FlightFare, AirportDetail } from '@/types';
+import {
+  AircraftTelemetry,
+  AirportScheduleItem,
+  FlightFare,
+  AirportDetail,
+  AirportWeather,
+  AdminSession,
+  AdminDashboardData,
+  ProviderIntegrationStatus,
+  FlightNotice,
+  GroundOperationTask,
+} from '@/types';
+
 
 // Detect the best default backend URL based on platform and environment
 export function getDefaultBaseUrl(): string {
@@ -237,14 +249,345 @@ export const apiService = {
   /**
    * Fares Comparison: GET /api/fares
    */
-  async getFares(filters?: { origin?: string; destination?: string; sortBy?: string }): Promise<ApiResponse<FlightFare[]>> {
+  async getFares(filters?: {
+    origin?: string;
+    destination?: string;
+    currency?: 'INR' | 'USD';
+    sortBy?: string;
+  }): Promise<ApiResponse<FlightFare[]>> {
     const params = new URLSearchParams();
     if (filters?.origin) params.append('origin', filters.origin);
     if (filters?.destination) params.append('destination', filters.destination);
+    if (filters?.currency) params.append('currency', filters.currency);
     if (filters?.sortBy) params.append('sortBy', filters.sortBy);
 
     const queryString = params.toString() ? `?${params.toString()}` : '';
     return fetchWithTimeout<ApiResponse<FlightFare[]>>(`/api/fares${queryString}`);
   },
-};
 
+  /**
+   * Price-Check Revalidation: POST /api/fares/:offerId/price-check (Blueprint Section 11)
+   */
+  async priceCheck(offerId: string): Promise<{
+    success: boolean;
+    revalidated: boolean;
+    offerId: string;
+    guaranteedPriceInr: number;
+    guaranteedPriceUsd: number;
+    seatsAvailable: number;
+    supplierName: string;
+    priceLockMinutes: number;
+    supplierNotice: string;
+    verifiedAtUtc: string;
+  }> {
+    return fetchWithTimeout(`/api/fares/${encodeURIComponent(offerId)}/price-check`, {
+      method: 'POST',
+    });
+  },
+
+  /**
+   * Curated Airport Hubs: GET /api/airports/hubs
+   */
+  async getAirportHubs(): Promise<ApiResponse<AirportDetail[]>> {
+    return fetchWithTimeout<ApiResponse<AirportDetail[]>>('/api/airports/hubs');
+  },
+
+  /**
+   * Single Airport Details: GET /api/airports/:code
+   */
+  async getAirportByCode(code: string): Promise<ApiResponse<AirportDetail>> {
+    return fetchWithTimeout<ApiResponse<AirportDetail>>(`/api/airports/${encodeURIComponent(code)}`);
+  },
+
+  /**
+   * Live Meteorological Data from Open-Meteo: GET /api/weather
+   * @param options lat/lon or airport code
+   */
+  async getAirportWeather(options: { lat?: number; lon?: number; airport?: string }): Promise<AirportWeather> {
+    const params = new URLSearchParams();
+    if (options.airport) params.append('airport', options.airport);
+    if (options.lat != null) params.append('lat', options.lat.toString());
+    if (options.lon != null) params.append('lon', options.lon.toString());
+
+    return fetchWithTimeout<AirportWeather>(`/api/weather?${params.toString()}`);
+  },
+
+  /**
+   * Master Airports Registry: GET /api/airports/master
+   */
+  async getMasterAirports(country?: string): Promise<ApiResponse<AirportDetail[]>> {
+    const params = new URLSearchParams();
+    if (country) params.append('country', country);
+    const qs = params.toString() ? `?${params.toString()}` : '';
+    return fetchWithTimeout<ApiResponse<AirportDetail[]>>(`/api/airports/master${qs}`);
+  },
+
+  /**
+   * Currency Exchange Rates: GET /api/fares/exchange-rates
+   */
+  async getExchangeRates(): Promise<{
+    success: boolean;
+    isLive: boolean;
+    base: string;
+    rates: Record<string, number>;
+    source: string;
+    rateTimestampUtc: string;
+  }> {
+    return fetchWithTimeout('/api/fares/exchange-rates');
+  },
+
+  /**
+   * Ground Operations Cases: GET /api/ops/cases
+   */
+  async getOpsCases(): Promise<ApiResponse<any[]>> {
+    return fetchWithTimeout<ApiResponse<any[]>>('/api/ops/cases');
+  },
+
+  /**
+   * Turnaround Milestones: GET /api/ops/milestones
+   */
+  async getTurnaroundMilestones(): Promise<ApiResponse<any[]>> {
+    return fetchWithTimeout<ApiResponse<any[]>>('/api/ops/milestones');
+  },
+
+  /**
+   * Notification Delay & Gate Alerts: GET /api/alerts
+   */
+  async getAlerts(): Promise<ApiResponse<any[]>> {
+    return fetchWithTimeout<ApiResponse<any[]>>('/api/alerts');
+  },
+
+  /**
+   * Register Alert Subscription: POST /api/alerts
+   */
+  async createAlertSubscription(subscription: {
+    flightNumber: string;
+    type?: string;
+    email?: string;
+    thresholdMinutes?: number;
+    quietHours?: { enabled: boolean; startUtc: string; endUtc: string };
+  }): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>('/api/alerts', {
+      method: 'POST',
+      body: JSON.stringify(subscription),
+    });
+  },
+
+  // ----------------------------------------------------
+  // Admin Panel API Methods
+  // ----------------------------------------------------
+
+  /**
+   * Public Notices: GET /api/notices
+   */
+  async getPublicNotices(): Promise<ApiResponse<FlightNotice[]>> {
+    return fetchWithTimeout<ApiResponse<FlightNotice[]>>('/api/notices');
+  },
+
+  /**
+   * Admin Login: POST /api/admin/login
+   */
+  async adminLogin(credentials: { username: string; password: string }): Promise<AdminSession & { success: boolean; message: string }> {
+    return fetchWithTimeout<AdminSession & { success: boolean; message: string }>('/api/admin/login', {
+      method: 'POST',
+      body: JSON.stringify(credentials),
+    });
+  },
+
+  /**
+   * Verify Admin Session: GET /api/admin/me
+   */
+  async adminGetMe(token: string): Promise<{ success: boolean; admin: { username: string; role: string; expiresAt: string } }> {
+    return fetchWithTimeout<{ success: boolean; admin: { username: string; role: string; expiresAt: string } }>('/api/admin/me', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  /**
+   * Admin Dashboard Metrics: GET /api/admin/dashboard
+   */
+  async adminGetDashboard(token: string): Promise<AdminDashboardData> {
+    return fetchWithTimeout<AdminDashboardData>('/api/admin/dashboard', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  /**
+   * Provider Integration Statuses: GET /api/admin/integrations
+   */
+  async adminGetIntegrations(token: string, force = false): Promise<{ success: boolean; results: ProviderIntegrationStatus[]; fromCache: boolean }> {
+    return fetchWithTimeout<{ success: boolean; results: ProviderIntegrationStatus[]; fromCache: boolean }>(`/api/admin/integrations${force ? '?force=true' : ''}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  /**
+   * Run Provider Integration Probes: POST /api/admin/integrations/check
+   */
+  async adminCheckIntegrations(token: string): Promise<{ success: boolean; results: ProviderIntegrationStatus[]; fromCache: boolean }> {
+    return fetchWithTimeout<{ success: boolean; results: ProviderIntegrationStatus[]; fromCache: boolean }>('/api/admin/integrations/check', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  /**
+   * Admin Notices List: GET /api/admin/notices
+   */
+  async adminGetNotices(token: string): Promise<ApiResponse<FlightNotice[]>> {
+    return fetchWithTimeout<ApiResponse<FlightNotice[]>>('/api/admin/notices', {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  /**
+   * Create Notice: POST /api/admin/notices
+   */
+  async adminCreateNotice(token: string, notice: Partial<FlightNotice>): Promise<ApiResponse<FlightNotice>> {
+    return fetchWithTimeout<ApiResponse<FlightNotice>>('/api/admin/notices', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(notice),
+    });
+  },
+
+  /**
+   * Update Notice: PUT /api/admin/notices/:id
+   */
+  async adminUpdateNotice(token: string, id: string, updates: Partial<FlightNotice>): Promise<ApiResponse<FlightNotice>> {
+    return fetchWithTimeout<ApiResponse<FlightNotice>>(`/api/admin/notices/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}` },
+      body: JSON.stringify(updates),
+    });
+  },
+
+  /**
+   * Delete Notice: DELETE /api/admin/notices/:id
+   */
+  async adminDeleteNotice(token: string, id: string): Promise<ApiResponse<any>> {
+    return fetchWithTimeout<ApiResponse<any>>(`/api/admin/notices/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    });
+  },
+
+  /**
+   * Admin Audit Trail: GET /api/admin/audit
+   */
+  async adminGetAuditTrail(token: string, limit = 50, category?: string): Promise<{ success: boolean; count: number; data: any[] }> {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (category) q.append('category', category);
+    return fetchWithTimeout<{ success: boolean; count: number; data: any[] }>('/api/admin/audit?' + q.toString(), {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+  },
+
+  /**
+   * Admin System Logs: GET /api/admin/logs
+   */
+  async adminGetSystemLogs(token: string, limit = 100, level?: string): Promise<{ success: boolean; count: number; data: any[] }> {
+    const q = new URLSearchParams({ limit: String(limit) });
+    if (level) q.append('level', level);
+    return fetchWithTimeout<{ success: boolean; count: number; data: any[] }>('/api/admin/logs?' + q.toString(), {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+  },
+
+  /**
+   * Admin Config: GET /api/admin/config
+   */
+  async adminGetConfig(token: string): Promise<{ success: boolean; data: any }> {
+    return fetchWithTimeout<{ success: boolean; data: any }>('/api/admin/config', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+  },
+
+  /**
+   * Update Config: PUT /api/admin/config
+   */
+  async adminUpdateConfig(token: string, updates: any): Promise<{ success: boolean; message: string; data: any }> {
+    return fetchWithTimeout<{ success: boolean; message: string; data: any }>('/api/admin/config', {
+      method: 'PUT',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify(updates),
+    });
+  },
+
+  /**
+   * Database Diagnostics: GET /api/admin/database
+   */
+  async adminGetDatabase(token: string): Promise<{ success: boolean; diagnostics: any }> {
+    return fetchWithTimeout<{ success: boolean; diagnostics: any }>('/api/admin/database', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+  },
+
+  /**
+   * Airlines: GET /api/admin/airlines
+   */
+  async adminGetAirlines(token: string): Promise<{ success: boolean; count: number; data: any[] }> {
+    return fetchWithTimeout<{ success: boolean; count: number; data: any[] }>('/api/admin/airlines', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+  },
+
+  /**
+   * Users: GET /api/admin/users
+   */
+  async adminGetUsers(token: string): Promise<{
+    success: boolean;
+    users: any[];
+    endUsers: {
+      available: boolean;
+      source: string;
+      total: number | null;
+      roleBreakdown: Record<string, number> | null;
+      records: {
+        id: number;
+        username: string;
+        email: string;
+        fullName: string;
+        role: string;
+        createdAt: string | null;
+      }[];
+      reason: string | null;
+    };
+  }> {
+    return fetchWithTimeout('/api/admin/users', {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+  },
+
+  /**
+   * Ground Operations tasks: GET /api/admin/ground-operations
+   */
+  async adminGetGroundOperations(token: string, status?: string): Promise<{
+    success: boolean;
+    count: number;
+    demoCount: number;
+    storage: string;
+    allowedStatuses: string[];
+    data: GroundOperationTask[];
+  }> {
+    const q = status ? `?status=${encodeURIComponent(status)}` : '';
+    return fetchWithTimeout('/api/admin/ground-operations' + q, {
+      headers: { Authorization: 'Bearer ' + token },
+    });
+  },
+
+  /**
+   * Update Ground Operations task: PATCH /api/admin/ground-operations/:id
+   */
+  async adminUpdateGroundOperation(
+    token: string,
+    id: string,
+    updates: { status?: string; notes?: string; assignedTo?: string; priority?: string }
+  ): Promise<{ success: boolean; data: GroundOperationTask; message?: string }> {
+    return fetchWithTimeout('/api/admin/ground-operations/' + encodeURIComponent(id), {
+      method: 'PATCH',
+      headers: { Authorization: 'Bearer ' + token },
+      body: JSON.stringify(updates),
+    });
+  },
+};
